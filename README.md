@@ -28,7 +28,6 @@ Pressing `G` in Free Play place phase (build modus) toggles the Background Modus
 
 - build with Visual Studio or from the command line:
 
-      nuget restore
       dotnet build
 
 
