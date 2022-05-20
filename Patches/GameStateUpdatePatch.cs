@@ -6,11 +6,16 @@ namespace BackgroundBlocks.Patches
     [HarmonyPatch(typeof(GameState), nameof(GameState.Update))]
     static class GameStateUpdatePatch
     {
-        static void Prefix()
+        static void Prefix(GameState __instance)
         {
             if (Input.GetKeyDown(KeyCode.G))
             {
-                ToggleBackgroundMode();
+                GameControl gameControl = Object.FindObjectOfType<GameControl>();
+                if (GameSettings.GetInstance().GameMode == GameState.GameMode.FREEPLAY
+                    && gameControl && gameControl.Phase == GameControl.GamePhase.PLACE)
+                {
+                    ToggleBackgroundMode();
+                }
             }
         }
 
@@ -19,7 +24,7 @@ namespace BackgroundBlocks.Patches
             BackgroundBlocksMod.enableBackgroundMode = !BackgroundBlocksMod.enableBackgroundMode;
 
             NotifyChanged("BackgroundMode", BackgroundBlocksMod.enableBackgroundMode);
-            
+
             foreach (PiecePlacementCursor cur in UnityEngine.Object.FindObjectsOfType<PiecePlacementCursor>())
             {
                 if (cur.Piece)
