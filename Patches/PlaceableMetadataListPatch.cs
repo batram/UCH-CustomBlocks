@@ -11,7 +11,7 @@ namespace BackgroundBlocks.Patches
     {
         static void Prefix(ref int idx)
         {
-            if(idx > BackgroundBlocksMod.magicBackgroundNumber)
+            if(idx >= BackgroundBlocksMod.magicBackgroundNumber)
             {
                 idx -= BackgroundBlocksMod.magicBackgroundNumber;
             }

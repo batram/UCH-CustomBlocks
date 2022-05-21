@@ -23,7 +23,7 @@ namespace BackgroundBlocks
         public static bool IsBackground(GameObject go)
         {
             var meta = go.GetComponent<PlaceableMetadata>();
-            if (meta && meta.blockSerializeIndex > magicBackgroundNumber)
+            if (meta && meta.blockSerializeIndex >= magicBackgroundNumber)
             {
                 return true;
             }
@@ -72,7 +72,7 @@ namespace BackgroundBlocks
             }
 
             PlaceableMetadata meta = go.GetComponent<PlaceableMetadata>();
-            if (meta.blockSerializeIndex > BackgroundBlocksMod.magicBackgroundNumber)
+            if (meta.blockSerializeIndex >= BackgroundBlocksMod.magicBackgroundNumber)
             {
                 meta.blockSerializeIndex -= BackgroundBlocksMod.magicBackgroundNumber;
             }

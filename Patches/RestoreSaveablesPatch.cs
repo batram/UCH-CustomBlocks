@@ -12,7 +12,7 @@ namespace BackgroundBlocks.Patches
         {
             foreach (QuickSaver.SaveablePiece saveable in saveables.Values)
             {
-                if (saveable.placeable && saveable.blockID > BackgroundBlocksMod.magicBackgroundNumber)
+                if (saveable.placeable && saveable.blockID >= BackgroundBlocksMod.magicBackgroundNumber)
                 {
                     BackgroundBlocksMod.EnableBackground(saveable.placeable.gameObject);
                 }
