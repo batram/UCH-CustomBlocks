@@ -102,8 +102,8 @@ namespace BackgroundBlocks
 
         public static void SetCollide(GameObject go, bool active)
         {
-            go.transform.Find("SolidCollider").transform.gameObject.SetActive(active);
-            go.transform.Find("InnerHazard").transform.gameObject.SetActive(active);
+            go.transform.Find("SolidCollider")?.transform.gameObject.SetActive(active);
+            go.transform.Find("InnerHazard")?.transform.gameObject.SetActive(active);
         }
 
         public static void HighlightAlpha(Placeable placeable)
