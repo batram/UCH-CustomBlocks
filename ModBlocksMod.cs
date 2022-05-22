@@ -15,6 +15,7 @@ namespace ModBlocks
         public static int magicModBlockNumber = 9000;
 
         public static int selectedLayer = 0;
+        public static bool highlightSelectedLayer = false;
         public static string defaultBackgroundLayer = "Background 1";
 
         void Awake()

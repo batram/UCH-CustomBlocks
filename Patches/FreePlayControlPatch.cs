@@ -47,6 +47,8 @@ namespace ModBlocks.Patches
                     modblock.RestoreLayer();
                 }
             }
+
+            PlaceableHighlighter.UpdateAll();
         }
     }
 }

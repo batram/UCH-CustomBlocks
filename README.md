@@ -10,7 +10,7 @@ https://user-images.githubusercontent.com/1382274/169524818-4b661eb7-632f-48a8-9
 | G            | Toggle Mod Block Mode              |
 | L            | Switch to next layer               |
 | Shift + L    | Switch to previous layer           |
-
+| H            | Highlight blocks on current layer  |
 
 
 

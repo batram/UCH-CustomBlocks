@@ -26,6 +26,11 @@ namespace ModBlocks.Patches
                         SwitchLayer();
                     }
                 }
+                if (Input.GetKeyDown(KeyCode.H))
+                {
+                    ToggleLayerHighlight();
+                }
+
             }
         }
 
@@ -35,11 +40,20 @@ namespace ModBlocks.Patches
 
             NotifyChanged("Mod Block Mode", ModBlocksMod.enableModBlockMode);
 
-            updatePicked();
+            UpdatePicked();
+            PlaceableHighlighter.UpdateAll();
         }
 
+        static void ToggleLayerHighlight()
+        {
+            ModBlocksMod.highlightSelectedLayer = !ModBlocksMod.highlightSelectedLayer;
 
-        static void updatePicked()
+            NotifyChanged("Highlight Layer", ModBlocksMod.highlightSelectedLayer);
+
+            PlaceableHighlighter.UpdateAll();
+        }
+
+        static void UpdatePicked()
         {
             foreach (PiecePlacementCursor cur in UnityEngine.Object.FindObjectsOfType<PiecePlacementCursor>())
             {
@@ -66,9 +80,9 @@ namespace ModBlocks.Patches
                 ModBlocksMod.selectedLayer = SortingLayer.layers.Length - 1;
             }
             UserMessageManager.Instance.UserMessage("Layer selected: " + SortingLayer.layers[ModBlocksMod.selectedLayer].name.PadLeft(20, ' '));
-
-            updatePicked();
-        }
+            UpdatePicked();
+            PlaceableHighlighter.UpdateAll();
+         }
 
         static void NotifyChanged(string name, bool value)
         {
