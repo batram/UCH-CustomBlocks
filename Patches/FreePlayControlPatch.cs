@@ -5,7 +5,7 @@ using GameEvent;
 using HarmonyLib;
 using UnityEngine;
 
-namespace BackgroundBlocks.Patches
+namespace ModBlocks.Patches
 {
     [HarmonyPatch(typeof(FreePlayControl), nameof(FreePlayControl.handleEvent))]
     static class FreePlayControlPatch
@@ -28,27 +28,23 @@ namespace BackgroundBlocks.Patches
         // so pieces are visible in selectable in place phase
         static void ToggleLayersAndCollider(GameControl.GamePhase phase)
         {
-            foreach (Placeable placeable in GameObject.FindObjectsOfType<Placeable>())
+            foreach (ModBlock modblock in GameObject.FindObjectsOfType<ModBlock>())
             {
-                if (BackgroundBlocksMod.IsBackground(placeable.gameObject))
+                if (phase != GameControl.GamePhase.PLAY)
                 {
-                    if (phase != GameControl.GamePhase.PLAY)
-                    {
-                        BackgroundBlocksMod.HighlightAlpha(placeable);
+                    PlaceableHighlighter.HighlightAlpha(modblock.placeable);
 
-                        // collider needs to be active, to be selectable
-                        BackgroundBlocksMod.SetCollide(placeable.gameObject, true);
+                    // collider needs to be active, to be selectable
+                    modblock.SetCollide(true);
 
-                        // change sortingLayer to be visible in place phase
-                        BackgroundBlocksMod.SetLayer(placeable, "Default");
-                    }
-                    else
-                    {
-                        BackgroundBlocksMod.ResetAlpha(placeable);
-                        BackgroundBlocksMod.SetCollide(placeable.gameObject, false);
-                        BackgroundBlocksMod.SetLayer(placeable, "Background 1");
-                    }
-
+                    // change sortingLayer to be visible in place phase
+                    modblock.SetLayer("Default");
+                }
+                else
+                {
+                    PlaceableHighlighter.ResetAlpha(modblock.placeable);
+                    modblock.SetCollide(false);
+                    modblock.RestoreLayer();
                 }
             }
         }

@@ -47,9 +47,12 @@
       <HintPath>$(UCHfolder)\UltimateChickenHorse_Data\Managed\com.unity.multiplayer-hlapi.Runtime.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="UnityEngine.Physics2DModule">
-      <HintPath>$(UCHfolder)\UltimateChickenHorse_Data\Managed\UnityEngine.Physics2DModule.dll</HintPath>
-    </Reference>
+	  <Reference Include="UnityEngine.Physics2DModule">
+		  <HintPath>$(UCHfolder)\UltimateChickenHorse_Data\Managed\UnityEngine.Physics2DModule.dll</HintPath>
+	  </Reference>
+	  <Reference Include="UnityEngine.JSONSerializeModule">
+		  <HintPath>$(UCHfolder)\UltimateChickenHorse_Data\Managed\UnityEngine.JSONSerializeModule.dll</HintPath>
+	  </Reference>  
   </ItemGroup>
 
   <ItemGroup>

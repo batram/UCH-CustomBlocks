@@ -3,7 +3,7 @@ using HarmonyLib;
 using UnityEngine;
 using System.Collections.Generic;
 
-namespace BackgroundBlocks.Patches
+namespace ModBlocks.Patches
 {
     [HarmonyPatch(typeof(QuickSaver), nameof(QuickSaver.RestoreSaveables))]
     static class RestoreSaveablesPatch
@@ -12,10 +12,10 @@ namespace BackgroundBlocks.Patches
         {
             foreach (QuickSaver.SaveablePiece saveable in saveables.Values)
             {
-                if (saveable.placeable && saveable.blockID >= BackgroundBlocksMod.magicBackgroundNumber)
+                if (saveable.placeable && saveable.blockID >= ModBlocksMod.magicModBlockNumber)
                 {
-                    BackgroundBlocksMod.EnableBackground(saveable.placeable.gameObject);
                     saveable.overrideName = saveable.placeable.gameObject.name;
+                    ModBlocksMod.EnableModBlock(saveable.placeable.gameObject);
                 }
             }
         }
@@ -28,10 +28,18 @@ namespace BackgroundBlocks.Patches
         {
             foreach (QuickSaver.SaveablePiece saveable in __result)
             {
-                if (saveable.placeable && saveable.blockID >= BackgroundBlocksMod.magicBackgroundNumber)
+                Debug.Log("saveable.blockID: " + saveable.blockID);
+
+                if (saveable.placeable && saveable.blockID >= ModBlocksMod.magicModBlockNumber)
                 {
-                    saveable.overrideName = saveable.placeable.gameObject.name;
-                }
+                    var mbi = saveable.placeable.gameObject.GetComponent<ModBlock>();
+                    if (mbi)
+                    {
+                        mbi.PersistInGOName();
+                    }
+                    Debug.Log("GetSaveablesFromMetadata: " + mbi.name);
+                    saveable.overrideName = mbi.name;
+                } 
             }
         }
     }

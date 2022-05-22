@@ -2,23 +2,24 @@ using HarmonyLib;
 using System;
 using UnityEngine;
 
-namespace BackgroundBlocks.Patches
+namespace ModBlocks.Patches
 {
     [HarmonyPatch(typeof(PiecePlacementCursor), nameof(PiecePlacementCursor.SetPiece))]
     static class PiecePlacementCursorSetPiecePatch
     {
         static void Postfix(Placeable piece)
         {
-            if (BackgroundBlocksMod.enableBackgroundMode)
+            if (ModBlocksMod.enableModBlockMode)
             {
-                if (piece != null)
+                if (piece && piece.gameObject)
                 {
-                    BackgroundBlocksMod.EnableBackground(piece.gameObject, false, true);
+                    ModBlock mbi = ModBlocksMod.EnableModBlock(piece.gameObject);
+                    mbi.layer = SortingLayer.layers[ModBlocksMod.selectedLayer].name;
                 }
             }
-            else if (piece != null && BackgroundBlocksMod.IsBackground(piece.gameObject))
+            else if (piece && piece.gameObject && ModBlocksMod.IsModBlock(piece.gameObject))
             {
-                BackgroundBlocksMod.DisableBackground(piece.gameObject);
+                ModBlocksMod.DisableModBlock(piece.gameObject);
             }
         }
     }

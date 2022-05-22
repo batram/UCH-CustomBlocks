@@ -5,9 +5,11 @@ Works with online saves, but background pieces will not appear for users without
 https://user-images.githubusercontent.com/1382274/169524818-4b661eb7-632f-48a8-908c-9b31ed41bbb3.mp4
 
 
-| Key  |  Overrides |
-| ---  |        --- |
-| G    | Background |
+| Key          |  Overrides                         |
+| ---          |                                --- |
+| G            | Toggle Mod Block Mode              |
+| L            | Switch to next layer               |
+| Shift + L    | Switch to previous layer           |
 
 
 
