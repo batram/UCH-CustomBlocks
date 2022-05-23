@@ -143,6 +143,9 @@ namespace ModBlocks
         {
             this.gameObject.transform.Find("SolidCollider")?.transform.gameObject.SetActive(active);
             this.gameObject.transform.Find("InnerHazard")?.transform.gameObject.SetActive(active);
+
+            // L Boards Collider misspelled
+            this.gameObject.transform.Find("InnerHarzard")?.transform.gameObject.SetActive(active);
         }
 
 
