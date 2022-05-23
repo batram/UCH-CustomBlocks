@@ -1,5 +1,6 @@
 using HarmonyLib;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace ModBlocks.Patches
 {
@@ -38,38 +39,16 @@ namespace ModBlocks.Patches
         {
             ModBlocksMod.enableModBlockMode = !ModBlocksMod.enableModBlockMode;
 
-            NotifyChanged("Mod Block Mode", ModBlocksMod.enableModBlockMode);
+            LayerSelectionGUI.NotifyChanged("Mod Block Mode", ModBlocksMod.enableModBlockMode);
 
-            UpdatePicked();
+            LayerSelectionGUI.UpdatePicked();
             PlaceableHighlighter.UpdateAll();
         }
 
         static void ToggleLayerHighlight()
         {
-            ModBlocksMod.highlightSelectedLayer = !ModBlocksMod.highlightSelectedLayer;
-
-            NotifyChanged("Highlight Layer", ModBlocksMod.highlightSelectedLayer);
-
-            PlaceableHighlighter.UpdateAll();
-        }
-
-        static void UpdatePicked()
-        {
-            foreach (PiecePlacementCursor cur in UnityEngine.Object.FindObjectsOfType<PiecePlacementCursor>())
-            {
-                if (cur.Piece)
-                {
-                    if (ModBlocksMod.enableModBlockMode)
-                    {
-                        ModBlock mbi = ModBlocksMod.EnableModBlock(cur.Piece.gameObject);
-                        mbi.layer = SortingLayer.layers[ModBlocksMod.selectedLayer].name;
-                    }
-                    else
-                    {
-                        ModBlocksMod.DisableModBlock(cur.Piece.gameObject);
-                    }
-                }
-            }
+            var toggle = GameObject.Find("HighlightToggle")?.GetComponent<Toggle>();
+            toggle.isOn = !toggle.isOn; ;
         }
 
         static void SwitchLayer(bool reverse = false)
@@ -79,14 +58,9 @@ namespace ModBlocks.Patches
             {
                 ModBlocksMod.selectedLayer = SortingLayer.layers.Length - 1;
             }
-            UserMessageManager.Instance.UserMessage("Layer selected: " + SortingLayer.layers[ModBlocksMod.selectedLayer].name.PadLeft(20, ' '));
-            UpdatePicked();
-            PlaceableHighlighter.UpdateAll();
-         }
 
-        static void NotifyChanged(string name, bool value)
-        {
-            UserMessageManager.Instance.UserMessage($"{name} {(value ? "Enabled" : "Disabled")}");
-        }
+            var dropy = GameObject.Find("LayerDropdown")?.GetComponent<Dropdown>();
+            dropy.value = ModBlocksMod.selectedLayer;
+         }
     }
 }

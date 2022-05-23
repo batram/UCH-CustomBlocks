@@ -53,6 +53,12 @@
 	  <Reference Include="UnityEngine.JSONSerializeModule">
 		  <HintPath>$(UCHfolder)\UltimateChickenHorse_Data\Managed\UnityEngine.JSONSerializeModule.dll</HintPath>
 	  </Reference>  
+	  <Reference Include="UnityEngine.UI">
+		  <HintPath>$(UCHfolder)\UltimateChickenHorse_Data\Managed\UnityEngine.UI.dll</HintPath>
+	  </Reference>
+	  <Reference Include="UnityEngine.UIModule">
+		  <HintPath>$(UCHfolder)\UltimateChickenHorse_Data\Managed\UnityEngine.UIModule.dll</HintPath>
+	  </Reference>
   </ItemGroup>
 
   <ItemGroup>
