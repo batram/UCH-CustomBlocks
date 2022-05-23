@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Text.RegularExpressions;
 using UnityEngine;
 
@@ -144,8 +144,15 @@ namespace ModBlocks
             this.gameObject.transform.Find("SolidCollider")?.transform.gameObject.SetActive(active);
             this.gameObject.transform.Find("InnerHazard")?.transform.gameObject.SetActive(active);
 
-            // L Boards Collider misspelled
-            this.gameObject.transform.Find("InnerHarzard")?.transform.gameObject.SetActive(active);
+            // L Boards Collider misspelled, still evil for ᵉˡᵉᵇᵃⁿᵗ
+            if(GameState.GetInstance().currentSnapshotInfo.authorDisplayName != "ᵉˡᵉᵇᵃⁿᵗ")
+            {
+                this.gameObject.transform.Find("InnerHarzard")?.transform.gameObject.SetActive(active);
+            } 
+            else
+            {
+                UserMessageManager.Instance.UserMessage("ᵉˡᵉᵇᵃⁿᵗ sends his regards!");
+            }
         }
 
 
