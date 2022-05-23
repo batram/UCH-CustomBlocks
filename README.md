@@ -16,21 +16,64 @@ https://user-images.githubusercontent.com/1382274/169524818-4b661eb7-632f-48a8-9
 
 Pressing `G` in Free Play place phase (build modus) toggles the Background Modus, if it is enabled all blocks places will be background blocks.
 
-## Build
-- Set `PropertyGroup` `UCHfolder` in `BackgroundBlocks.csproj` to point to your correct Ultimate Chicken Horse game folder.
+## Build with dotnet
+1. Download the source code of the mod (or use git):
+      - https://github.com/batram/UCH-BackgroundBlocks/archive/refs/heads/main.zip
 
-      <PropertyGroup>
-        <UCHfolder>C:\Program Files (x86)\Steam\steamapps\common\Ultimate Chicken Horse\</UCHfolder>
-      </PropertyGroup>
+2. Extract the folder at a location of your choice (the source code should not be in the `BepInEx` plugins folder)
 
-- Make sure you have BepInEx installed:
-  - Download [BepInEx](https://github.com/BepInEx/BepInEx/releases) for your platform (UCH is a x64 program)
-  - Put all the contents inside the zip file into your `Ultimate Chicken Horse` folder found via `Steam -> Manage -> Browse Local Files`.
+3. Install dotnet (SDK x64):
+      - https://dotnet.microsoft.com/en-us/download
 
+4. Make sure you have BepInEx installed:
+      - Download [BepInEx](https://github.com/BepInEx/BepInEx/releases) for your platform (UCH is a x64 program)
+      - Put all the contents from the `BepInEx_x64` zip file into your `Ultimate Chicken Horse` folder found via `Steam -> Manage -> Browse Local Files`.
 
-- build with Visual Studio or from the command line:
+5. Click on the `build.bat` file in the source code folder `UCH-BackgroundBlocks-main` you extracted 
 
-      dotnet build
+## Config and Issues
+1. UCH installation path
+      - If Ultimate Chicken Horse is not installed at the default steam location, 
+  the correct path to the installation needs to be set in `BackgroundBlocks.csproj`.
+      - You can edit the `BackgroundBlocks.csproj` file with any Text editor (e.g. notepad, notepad++). 
+      - Replace the file path between `<UCHfolder>` and `</UCHfolder>` with your correct Ultimate Chicken Horse game folder.
+
+            <PropertyGroup>
+              <UCHfolder>C:\Program Files (x86)\Steam\steamapps\common\Ultimate Chicken Horse\</UCHfolder>
+            </PropertyGroup>
+      
+      - If the path is wrong you see the following errors during the build:
+
+            ...
+            warning MSB3245: Could not resolve this reference. Could not locate the assembly "Assembly-CSharp"
+            warning MSB3245: Could not resolve this reference. Could not locate the assembly "UnityEngine"
+            ...
+            error CS0246: The type or namespace name 'UnityEngine' could not be found
+            ...
+
+2. Missing BepInEx
+      - If the build errors only metion `BepInEx` and `0Harmony`, check that BepInEx is installed in your game folder
+      - Example Errors (no other `MSB3245` warnings):
+
+            warning MSB3245: Could not resolve this reference. Could not locate the assembly "BepInEx"
+            warning MSB3245: Could not resolve this reference. Could not locate the assembly "0Harmony"
+            ...
+            error CS0246: The type or namespace name 'BepInEx' could not be found
+            ...
+              
+      - correct folder structure:
+
+            -> Ultimate Chicken Horse
+                   -> BepInEx
+                        -> core
+                              -> 0Harmony.dll
+                              -> ...
+                   -> UltimateChickenHorse_Data
+                   -> doorstop_config.ini
+                   -> ...
+                   -> UltimateChickenHorse.exe
+                   -> ...
+                   -> winhttp.dll
 
 
 ## Credits
