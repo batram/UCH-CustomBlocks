@@ -58,6 +58,9 @@
 	  </Reference>
 	  <Reference Include="UnityEngine.UIModule">
 		  <HintPath>$(UCHfolder)\UltimateChickenHorse_Data\Managed\UnityEngine.UIModule.dll</HintPath>
+	  </Reference>	  
+    <Reference Include="Steamworks">
+		  <HintPath>$(UCHfolder)\UltimateChickenHorse_Data\Managed\com.rlabrecque.steamworks.net.dll</HintPath>
 	  </Reference>
   </ItemGroup>
 
