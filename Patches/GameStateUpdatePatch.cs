@@ -9,7 +9,7 @@ namespace ModBlocks.Patches
     {
         static void Prefix(GameState __instance)
         {
-            if(ModBlocksMod.InFreePlace())
+            if (ModBlocksMod.InFreePlace() && !GameState.ChatSystem.ChatMode)
             {
                 if (Input.GetKeyDown(KeyCode.G))
                 {
@@ -61,6 +61,6 @@ namespace ModBlocks.Patches
 
             var dropy = GameObject.Find("LayerDropdown")?.GetComponent<Dropdown>();
             dropy.value = ModBlocksMod.selectedLayer;
-         }
+        }
     }
 }
