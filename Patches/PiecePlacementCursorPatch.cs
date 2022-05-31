@@ -9,17 +9,18 @@ namespace ModBlocks.Patches
     {
         static void Postfix(Placeable piece)
         {
-            if (ModBlocksMod.enableModBlockMode)
+            if (piece && piece.gameObject)
             {
-                if (piece && piece.gameObject)
+                if (ModBlocksMod.enableModBlockMode)
                 {
                     ModBlock mbi = ModBlocksMod.EnableModBlock(piece.gameObject);
                     mbi.layer = SortingLayer.layers[ModBlocksMod.selectedLayer].name;
                 }
-            }
-            else if (piece && piece.gameObject && ModBlocksMod.IsModBlock(piece.gameObject))
-            {
-                ModBlocksMod.DisableModBlock(piece.gameObject);
+                else if (ModBlocksMod.IsModBlock(piece.gameObject))
+                {
+                    ModBlocksMod.DisableModBlock(piece.gameObject);
+                }
+                PlaceableHighlighter.HighlightUpdateBlock(piece);
             }
         }
     }

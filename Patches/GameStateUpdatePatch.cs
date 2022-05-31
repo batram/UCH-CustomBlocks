@@ -19,7 +19,6 @@ namespace ModBlocks.Patches
                 {
                     if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
                     {
-                        Debug.Log("Shifty");
                         SwitchLayer(true);
                     }
                     else
@@ -42,7 +41,7 @@ namespace ModBlocks.Patches
             LayerSelectionGUI.NotifyChanged("Mod Block Mode", ModBlocksMod.enableModBlockMode);
 
             LayerSelectionGUI.UpdatePicked();
-            PlaceableHighlighter.UpdateAll();
+            PlaceableHighlighter.HighlightUpdateAll();
         }
 
         static void ToggleLayerHighlight()

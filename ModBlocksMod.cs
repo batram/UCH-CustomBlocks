@@ -57,7 +57,7 @@ namespace ModBlocks
 
         public static bool InFreePlace()
         {
-            GameControl gameControl = Object.FindObjectOfType<GameControl>();
+            GameControl gameControl = LobbyManager.instance?.CurrentGameController;
             return GameSettings.GetInstance().GameMode == GameState.GameMode.FREEPLAY
                     && gameControl && gameControl.Phase == GameControl.GamePhase.PLACE;
         }

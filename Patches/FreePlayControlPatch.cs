@@ -48,7 +48,7 @@ namespace ModBlocks.Patches
                 }
             }
 
-            PlaceableHighlighter.UpdateAll();
+            PlaceableHighlighter.HighlightUpdateAll();
         }
     }
 }

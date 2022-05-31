@@ -25,17 +25,23 @@ namespace ModBlocks
             placeable.SetColor(placeable.CustomColor);
         }
 
-        public static void UpdateAll()
+        public static void HighlightUpdateAll()
         {
             foreach (Placeable pla in Object.FindObjectsOfType<Placeable>())
             {
-                // highlight only in Place Phase
-                if (!ModBlocksMod.InFreePlace())
-                {
-                    PlaceableHighlighter.ResetAlpha(pla);
-                    continue;
-                }
+                HighlightUpdateBlock(pla);
+            }
+        }
 
+        public static void HighlightUpdateBlock(Placeable pla)
+        {
+            // highlight only in Place Phase
+            if (!ModBlocksMod.InFreePlace())
+            {
+                PlaceableHighlighter.ResetAlpha(pla);
+            }
+            else
+            {
                 // revert to normal scheme if layer highlight is not active
                 if (!ModBlocksMod.highlightSelectedLayer)
                 {
@@ -76,6 +82,5 @@ namespace ModBlocks
                 }
             }
         }
-
     }
 }

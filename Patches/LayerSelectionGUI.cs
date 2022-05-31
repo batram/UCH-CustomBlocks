@@ -53,7 +53,7 @@ namespace ModBlocks.Patches
                 text.text = "Highlight " + value;
                 LayerSelectionGUI.NotifyChanged("Highlight Layer", ModBlocksMod.highlightSelectedLayer);
                 ModBlocksMod.highlightSelectedLayer = highlight_toggle.isOn;
-                PlaceableHighlighter.UpdateAll();
+                PlaceableHighlighter.HighlightUpdateAll();
             });
      
             GameObject layer_dropdown_go = DefaultControls.CreateDropdown(uiResources);
@@ -70,7 +70,7 @@ namespace ModBlocks.Patches
                 ModBlocksMod.selectedLayer = value;
                 UserMessageManager.Instance.UserMessage("Layer selected: " + SortingLayer.layers[ModBlocksMod.selectedLayer].name.PadLeft(20, ' '));
                 LayerSelectionGUI.UpdatePicked();
-                PlaceableHighlighter.UpdateAll();
+                PlaceableHighlighter.HighlightUpdateAll();
             });
         }
     }
