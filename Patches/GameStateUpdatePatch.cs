@@ -30,7 +30,10 @@ namespace ModBlocks.Patches
                 {
                     ToggleLayerHighlight();
                 }
-
+            }
+            else if (GameSettings.GetInstance().GameMode != GameState.GameMode.FREEPLAY)
+            {
+                ModBlocksMod.enableModBlockMode = false;
             }
         }
 
