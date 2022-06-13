@@ -18,7 +18,6 @@ namespace ModBlocks.CustomBlocks
                 if (__instance.InventoryPages[3])
                 {
                     InventoryPage inventoryPage = UnityEngine.Object.Instantiate<InventoryPage>(__instance.InventoryPages[3], __instance.InventoryPages[3].transform.parent);
-                    GameObject.DontDestroyOnLoad(inventoryPage);
                     inventoryPage.name = "Inventory Mod Blocks";
                     var items = inventoryPage.transform.Find("Items");
 
