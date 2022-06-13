@@ -73,12 +73,13 @@ namespace ModBlocks.CustomBlocks
         override public Placeable CreatePlaceablePrefab()
         {
             Placeable placeable = base.CreatePlaceablePrefab();
-            placeable.gameObject.AddComponent<RCReceiver>();
+            placeable.gameObject.AddComponent<RCReceiver>().alwaysMovingSpriteLayer = true;
 
 
             var BaseSprite = placeable.transform.Find("GluePiece/Sprite");
 
             BaseSprite.GetComponent<SpriteRenderer>().sprite = sprite;
+            BaseSprite.GetComponent<SpriteRenderer>().sortingLayerName = "MovingBlocks";
             BaseSprite.transform.localScale = new Vector3(1f, 1f, 1);
             BaseSprite.transform.localPosition = new Vector3(-0.68f, - 1.13f, 0);
 
@@ -87,11 +88,11 @@ namespace ModBlocks.CustomBlocks
             Indicator.name = "Indicator";
             Indicator.transform.parent = BaseSprite.transform.parent;
             this.Indicator_spr = Indicator.GetComponent<SpriteRenderer>();
-            //TODO: Fix Layer
-            //this.Indicator_spr.sortingLayerName = glove.GetComponent<SpriteRenderer>().sortingLayerName;
+            this.ArtSprites = new SpriteRenderer[] { this.Indicator_spr };
             this.Indicator_spr.sprite = this.ind_sprite;
             Debug.Log("RCR Place this.Indicator_spr init " + this.Indicator_spr);
             this.Honey = placeable.transform.Find("GluePiece").GetComponent<HoneyPiece>();
+            placeable.alwaysMovingSpriteLayer = true;
             Placeable.AllPlaceables = new List<Placeable> { };
 
             return placeable;
@@ -168,6 +169,18 @@ namespace ModBlocks.CustomBlocks
         {
             Debug.Log("RCR Place " + placeable);
             this.Indicator_spr = placeable.transform.Find("Indicator")?.GetComponent<SpriteRenderer>();
+            if (Indicator_spr)
+            {
+                Indicator_spr.sortingLayerName = "MovingBlocks";
+                Indicator_spr.sortingOrder = 767;
+                var glue_spr = placeable.transform.Find("GluePiece/Sprite")?.GetComponent<SpriteRenderer>();
+                if (glue_spr)
+                {
+                    glue_spr.sortingLayerName = "MovingBlocks";
+                    glue_spr.sortingOrder = 766;
+                }
+
+            }
             this.AttachedTo = placeable.transform.parent?.GetComponent<Placeable>();
             Debug.Log("RCR Place AttachedTo " + this.AttachedTo);
             if (this.AttachedTo)

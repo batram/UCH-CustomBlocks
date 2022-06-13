@@ -50,8 +50,6 @@ namespace ModBlocks.CustomBlocks
         }
 
         public RCReceiver ConnectedReceiver;
-        public SpriteRenderer Indicator_spr;
-
 
         override public PickableBlock CreatePickableBlock()
         {
@@ -76,7 +74,7 @@ namespace ModBlocks.CustomBlocks
         override public Placeable CreatePlaceablePrefab()
         {
             Placeable placeable = base.CreatePlaceablePrefab();
-            placeable.gameObject.AddComponent<RCTransmitter>();
+            placeable.gameObject.AddComponent<RCTransmitter>().alwaysMovingSpriteLayer = true;
 
 
             var sprite_holder = placeable.transform.Find("SpriteHolder/Offset/Glove");
@@ -90,14 +88,14 @@ namespace ModBlocks.CustomBlocks
 
             placeable.transform.Find("SpriteHolder/Indicators-Crossbow_indicator.000 (1)").gameObject.SetActive(false);
 
-            var Indicator = Object.Instantiate(glove, glove.transform.parent);
+            var Indicator = Object.Instantiate(glove, sprite_holder);
             GameObject.DontDestroyOnLoad(Indicator);
             Indicator.name = "Indicator";
             Indicator.transform.parent = glove.transform.parent;
-            this.Indicator_spr = Indicator.GetComponent<SpriteRenderer>();
-            //TODO: Fix Layer
-            this.Indicator_spr.sortingLayerName = "MovingBlocks";
-            this.Indicator_spr.sprite = ind_sprite;
+            SpriteRenderer Indicator_spr = Indicator.GetComponent<SpriteRenderer>();
+            Indicator_spr.sprite = ind_sprite;
+            placeable.alwaysMovingSpriteLayer = true;
+
             placeable.gameObject.transform.Rotate(0, 0, 90f, Space.Self);
 
 
@@ -133,8 +131,19 @@ namespace ModBlocks.CustomBlocks
 
         public override void OnPlace(Placeable __instance, int playerNumber, bool sendEvent, bool force = false)
         {
-            Debug.Log("RCT Place " + playerNumber);
+            var indi = this.transform.Find("SpriteHolder/Offset/Glove/Indicator")?.GetComponent<SpriteRenderer>();
+            if (indi)
+            {
+                indi.sortingLayerName = "MovingBlocks";
+                indi.sortingOrder = 767;
 
+                var glove_spr = this.transform.Find("SpriteHolder/Offset/Glove/Glove")?.GetComponent<SpriteRenderer>();
+                if (glove_spr)
+                {
+                    glove_spr.sortingLayerName = "MovingBlocks";
+                    glove_spr.sortingOrder = 766;
+                }
+            }
         }
 
         public void ConnectToReceiver()
