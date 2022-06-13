@@ -18,9 +18,13 @@ namespace ModBlocks
         public static bool highlightSelectedLayer = false;
         public static string defaultBackgroundLayer = "Background 1";
 
+
+        public static string path;
+
         void Awake()
         {
             Debug.Log("Moin from ModBlocks");
+            path = Path.GetDirectoryName(this.Info.Location);
 
             for (int i = 0; i < SortingLayer.layers.Length; i++)
             {
