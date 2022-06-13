@@ -8,18 +8,15 @@ namespace ModBlocks.CustomBlocks
 {
     class MultiStart : CustomBlock
     {
-        public const int XCustomId = 104;
-        public override int CustomId { get { return XCustomId; } }
         public override int BasedId { get { return 38; } }
-
         public override string BasePlaceableName { get { return "StartPlank"; } }
         public override string BasePickableBlockName { get { return "StartPlank_Pick"; } }
-
-        new public string Name = typeof(MultiStart).Name;
-
-        public MultiStart()
+        public override string Name { get { return typeof(MultiStart).Name; } }
+        public new static int StaticId { get; set; }
+        public override int CustomId
         {
-            base.Name = this.Name;
+            get { return StaticId; }
+            set { StaticId = value; }
         }
 
         override public PickableBlock CreatePickableBlock()

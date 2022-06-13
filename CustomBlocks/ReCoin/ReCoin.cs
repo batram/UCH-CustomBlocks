@@ -8,18 +8,15 @@ namespace ModBlocks.CustomBlocks
 {
     class ReCoin : CustomBlock
     {
-        public const int XCustomId = 103;
-        public override int CustomId { get { return XCustomId; } }
         public override int BasedId { get { return 30; } }
-
         public override string BasePlaceableName { get { return "Coin"; } }
         public override string BasePickableBlockName { get { return "Coin_Pick"; } }
-
-        new public string Name = typeof(ReCoin).Name;
-
-        public ReCoin()
+        public override string Name { get { return typeof(ReCoin).Name; } }
+        public new static int StaticId { get; set; }
+        public override int CustomId
         {
-            base.Name = this.Name;
+            get { return StaticId; }
+            set { StaticId = value; }
         }
 
         override public PickableBlock CreatePickableBlock()

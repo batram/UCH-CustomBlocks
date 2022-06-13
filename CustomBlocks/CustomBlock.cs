@@ -10,11 +10,22 @@ namespace ModBlocks.CustomBlocks
 
         public static string ImageDir = Path.Combine(ModBlocksMod.path, "assets");
 
-        public virtual int CustomId { get; }
+        public static int OriginalBlockCount;
+
         public virtual int BasedId { get; }
         public virtual string BasePlaceableName { get; }
         public virtual string BasePickableBlockName { get; }
-        new public string Name;
+        public new virtual string Name { get; }
+
+        public static int StaticId { get; set;  }
+
+        virtual public int CustomId
+        {
+            get { return StaticId; }
+            set { StaticId = value; }
+        }
+
+
         public Sprite sprite;
 
         private PickableBlock pblock;
@@ -58,7 +69,7 @@ namespace ModBlocks.CustomBlocks
             PickB.name = this.Name + "_Pick";
             Object.DontDestroyOnLoad(PickB.gameObject);
             PickB.gameObject.hideFlags = HideFlags.HideAndDontSave;
-            PickB.blockSerializeIndex = this.CustomId;
+            PickB.blockSerializeIndex = CustomId;
             PickB.placeablePrefab = PlaceablePrefab;
 
             var default_sprite = PickB.transform.Find("ArtHolder/Sprite");
@@ -103,19 +114,29 @@ namespace ModBlocks.CustomBlocks
             return placeable;
         }
 
+        static public void AddBlock<T>() where T : CustomBlock, new()
+        {
+            var block = new T();
+            block.CustomId = CustomBlock.OriginalBlockCount + Blocks.Count;
+            Blocks.Add(CustomBlock.OriginalBlockCount + Blocks.Count, block.PlaceablePrefab);
+        }
+
+
         public static void InitBlocks()
         {
             if (Blocks.Count == 0)
             {
-                Blocks.Add(OneRoundWood.XCustomId, (new OneRoundWood()).PlaceablePrefab);
-                Blocks.Add(ReCoin.XCustomId, (new ReCoin()).PlaceablePrefab);
-                Blocks.Add(MultiStart.XCustomId, (new MultiStart()).PlaceablePrefab);
-                Blocks.Add(RCReceiver.XCustomId, (new RCReceiver()).PlaceablePrefab);
-                Blocks.Add(RCTransmitter.XCustomId, (new RCTransmitter()).PlaceablePrefab);
+                var c = GameSettings.GetInstance().DefaultRuleset.Blocks.Length;
+                CustomBlock.OriginalBlockCount = c;
+
+                AddBlock<OneRoundWood>();
+                AddBlock<ReCoin>();
+                AddBlock<MultiStart>();
+                AddBlock<RCReceiver>();
+                AddBlock<RCTransmitter>();
 
                 Placeable.AllPlaceables = new List<Placeable> { };
 
-                var c = GameSettings.GetInstance().DefaultRuleset.Blocks.Length;
                 System.Array.Resize(ref GameSettings.GetInstance().DefaultRuleset.Blocks, GameSettings.GetInstance().DefaultRuleset.Blocks.Length + CustomBlock.Blocks.Count);
 
                 foreach (Placeable block in Blocks.Values)

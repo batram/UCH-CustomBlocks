@@ -8,13 +8,16 @@ namespace ModBlocks.CustomBlocks
 {
     class OneRoundWood : CustomBlock
     {
-        public const int XCustomId = 102;
-        public override int CustomId { get { return XCustomId; } }
         public override int BasedId { get { return 0; } }
-
         public override string BasePlaceableName { get { return "01_1x1 Box"; } }
         public override string BasePickableBlockName { get { return "01_1x1 Box_Pick"; } }
-        new public string Name = typeof(OneRoundWood).Name;
+        public override string Name { get { return typeof(OneRoundWood).Name; } }
+        public new static int StaticId { get; set; }
+        public override int CustomId
+        {
+            get { return StaticId; }
+            set { StaticId = value; }
+        }
 
         protected Sprite sp;
         new public Sprite sprite
@@ -28,11 +31,6 @@ namespace ModBlocks.CustomBlocks
                 }
                 return sp;
             }
-        }
-
-        public OneRoundWood()
-        {
-            base.Name = this.Name;
         }
 
         override public PickableBlock CreatePickableBlock()

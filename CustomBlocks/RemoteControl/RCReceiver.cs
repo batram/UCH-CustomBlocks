@@ -8,15 +8,16 @@ namespace ModBlocks.CustomBlocks
 {
     class RCReceiver : CustomBlock
     {
-        public const int XCustomId = 105;
-        public override int CustomId { get { return XCustomId; } }
         public override int BasedId { get { return 32; } }
-
-        //GluePiece_SetPiece
         public override string BasePlaceableName { get { return "Glue"; } }
         public override string BasePickableBlockName { get { return "Glue_Pick"; } }
-
-        new public string Name = typeof(RCReceiver).Name;
+        public override string Name { get { return typeof(RCReceiver).Name; } }
+        public new static int StaticId { get; set; }
+        public override int CustomId
+        {
+            get { return StaticId; }
+            set { StaticId = value; }
+        }
 
         protected Sprite sp;
         new public Sprite sprite
@@ -53,12 +54,6 @@ namespace ModBlocks.CustomBlocks
         public Placeable ConnectedTransmitter;
         public SpriteRenderer Indicator_spr;
         public Placeable Honey;
-
-
-        public RCReceiver()
-        {
-            base.Name = this.Name;
-        }
 
         override public PickableBlock CreatePickableBlock()
         {
