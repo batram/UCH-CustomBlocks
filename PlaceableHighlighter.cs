@@ -35,6 +35,11 @@ namespace ModBlocks
 
         public static void HighlightUpdateBlock(Placeable pla)
         {
+            if (pla.markedForDestruction)
+            {
+                return;
+            }
+
             // highlight only in Place Phase
             if (!ModBlocksMod.InFreePlace())
             {

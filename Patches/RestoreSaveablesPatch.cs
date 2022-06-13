@@ -12,7 +12,7 @@ namespace ModBlocks.Patches
         {
             foreach (QuickSaver.SaveablePiece saveable in saveables.Values)
             {
-                if (saveable.placeable && saveable.blockID >= ModBlocksMod.magicModBlockNumber)
+                if (saveable.placeable && saveable.blockID >= ModBlocksMod.magicBackgroundBlockNumber)
                 {
                     saveable.overrideName = saveable.placeable.gameObject.name;
                     ModBlocksMod.EnableModBlock(saveable.placeable.gameObject);
@@ -30,7 +30,7 @@ namespace ModBlocks.Patches
             {
                 Debug.Log("saveable.blockID: " + saveable.blockID);
 
-                if (saveable.placeable && saveable.blockID >= ModBlocksMod.magicModBlockNumber)
+                if (saveable.placeable && saveable.blockID >= ModBlocksMod.magicBackgroundBlockNumber)
                 {
                     var mbi = saveable.placeable.gameObject.GetComponent<ModBlock>();
                     if (mbi)

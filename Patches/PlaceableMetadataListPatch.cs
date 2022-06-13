@@ -11,9 +11,9 @@ namespace ModBlocks.Patches
     {
         static void Prefix(ref int idx)
         {
-            if (idx >= ModBlocksMod.magicModBlockNumber)
+            if (idx >= ModBlocksMod.magicBackgroundBlockNumber)
             {
-                idx -= ModBlocksMod.magicModBlockNumber;
+                idx -= ModBlocksMod.magicBackgroundBlockNumber;
             }
         }
     }

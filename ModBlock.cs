@@ -27,9 +27,9 @@ namespace ModBlocks
         void Awake()
         {
             Debug.Log("ModBlockInfo Awake: " + this.gameObject.name);
-            if (meta.blockSerializeIndex < ModBlocksMod.magicModBlockNumber)
+            if (meta.blockSerializeIndex < ModBlocksMod.magicBackgroundBlockNumber)
             {
-                meta.blockSerializeIndex += ModBlocksMod.magicModBlockNumber;
+                meta.blockSerializeIndex += ModBlocksMod.magicBackgroundBlockNumber;
             }
 
             ParseNameData();
@@ -50,9 +50,9 @@ namespace ModBlocks
 
             DeTagName();
 
-            if (meta.blockSerializeIndex >= ModBlocksMod.magicModBlockNumber)
+            if (meta.blockSerializeIndex >= ModBlocksMod.magicBackgroundBlockNumber)
             {
-                meta.blockSerializeIndex -= ModBlocksMod.magicModBlockNumber;
+                meta.blockSerializeIndex -= ModBlocksMod.magicBackgroundBlockNumber;
             }
 
             this.SetLayer("Default", false);
