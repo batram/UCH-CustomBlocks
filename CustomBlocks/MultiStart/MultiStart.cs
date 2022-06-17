@@ -28,11 +28,15 @@ namespace ModBlocks.CustomBlocks
             //pb.transform.Find("StartZone").gameObject.SetActive(false);
             pb.transform.Find("StartZone").GetComponentInChildren<Text>().text = "MultiStart";
             pb.transform.Find("StartZone").transform.parent = pb.transform.Find("ArtHolder");
-
-            /*
-            foreach(SpriteRenderer sp in pb.transform.GetComponentsInChildren<SpriteRenderer>()){
+            
+            foreach (SpriteRenderer sp in pb.transform.GetComponentsInChildren<SpriteRenderer>())
+            {
                 sp.enabled = false;
-            }*/
+            }
+            foreach (Canvas sp in pb.transform.GetComponentsInChildren<Canvas>())
+            {
+                sp.enabled = false;
+            }
             return pb;
         }
 
@@ -71,5 +75,5 @@ namespace ModBlocks.CustomBlocks
             __instance.StartPoint = __state[0];
         }
     }
-            
+
 }
