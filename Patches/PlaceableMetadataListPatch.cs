@@ -15,6 +15,11 @@ namespace ModBlocks.Patches
             {
                 idx -= ModBlocksMod.magicBackgroundBlockNumber;
             }
+            if (idx >= ModBlocksMod.magicCustomBlockNumber)
+            {
+                idx += CustomBlocks.CustomBlock.OriginalBlockCount;
+                idx -= ModBlocksMod.magicCustomBlockNumber;
+            }
         }
     }
 }

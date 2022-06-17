@@ -69,7 +69,7 @@ namespace ModBlocks.CustomBlocks
             PickB.name = this.Name + "_Pick";
             Object.DontDestroyOnLoad(PickB.gameObject);
             PickB.gameObject.hideFlags = HideFlags.HideAndDontSave;
-            PickB.blockSerializeIndex = CustomId;
+            PickB.blockSerializeIndex = CustomBlock.OriginalBlockCount + CustomId;
             PickB.placeablePrefab = PlaceablePrefab;
 
             var default_sprite = PickB.transform.Find("ArtHolder/Sprite");
@@ -105,7 +105,7 @@ namespace ModBlocks.CustomBlocks
             placeable.ID = 0;
             if (placeable.gameObject.GetComponent<PlaceableMetadata>())
             {
-                placeable.gameObject.GetComponent<PlaceableMetadata>().blockSerializeIndex = CustomId;
+                placeable.gameObject.GetComponent<PlaceableMetadata>().blockSerializeIndex = CustomBlock.OriginalBlockCount + CustomId;
             }
 
             Placeable.AllPlaceables.Remove(placeable);
@@ -117,7 +117,7 @@ namespace ModBlocks.CustomBlocks
         static public void AddBlock<T>() where T : CustomBlock, new()
         {
             var block = new T();
-            block.CustomId = CustomBlock.OriginalBlockCount + Blocks.Count;
+            block.CustomId = Blocks.Count;
             Blocks.Add(CustomBlock.OriginalBlockCount + Blocks.Count, block.PlaceablePrefab);
         }
 
