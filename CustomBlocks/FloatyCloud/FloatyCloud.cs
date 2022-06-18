@@ -51,6 +51,13 @@ namespace ModBlocks.CustomBlocks
         {
             Placeable placeable = base.CreatePlaceablePrefab();
             placeable.gameObject.AddComponent(GetType());
+
+            GameObject sc = placeable.transform.Find("SolidCollider").gameObject;
+            sc.GetComponent<BoxCollider2D>().usedByEffector = true;
+            PlatformEffector2D peff = sc.AddComponent<PlatformEffector2D>();
+
+            placeable.transform.Find("InnerHazard").gameObject.SetActive(false);
+
             return placeable;
         }
 
