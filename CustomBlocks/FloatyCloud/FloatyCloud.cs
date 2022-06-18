@@ -37,6 +37,8 @@ namespace ModBlocks.CustomBlocks
         public HashSet<Character> CloudPlayers = new HashSet<Character>();
         public Vector3 CloudBasePosition;
         public float speed = 3;
+        public float FloatDownMax = 10;
+        public float debounceTimer = 0f;
 
         override public PickableBlock CreatePickableBlock()
         {
@@ -75,14 +77,39 @@ namespace ModBlocks.CustomBlocks
         {
             if (Placed)
             {
+                Vector3 downtown = CloudBasePosition - new Vector3(0, FloatDownMax, 0);
+
                 if (CloudPlayers.Count > 0)
                 {
-                    this.transform.position -= new Vector3(0, speed * Time.deltaTime * CloudPlayers.Count, 0);
+                    float step = speed * CloudPlayers.Count * Time.deltaTime;
+                    transform.position = Vector3.MoveTowards(transform.position, downtown, step);
                 }
                 else
                 {
                     float step = speed * Time.deltaTime;
                     transform.position = Vector3.MoveTowards(transform.position, CloudBasePosition, step);
+                }
+
+                float a = (Mathf.Abs(transform.position.y - downtown.y) / FloatDownMax) + 0.2f;
+                transform.Find("Sprite").GetComponent<SpriteRenderer>().color = new Color(0.5f, 0.5f, 0.5f, a);
+                if (debounceTimer < 0)
+                {
+                    GameObject sc = transform.Find("SolidCollider").gameObject;
+                    if (a < 0.5f)
+                    {
+                        if (sc.activeSelf) {
+                            debounceTimer = 2f;
+                            sc.SetActive(false);
+                        }
+                    }
+                    else
+                    {
+                        sc.SetActive(true);
+                    }
+                }
+                else
+                {
+                    debounceTimer -= Time.deltaTime;
                 }
             }
         }
