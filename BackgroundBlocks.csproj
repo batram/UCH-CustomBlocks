@@ -81,11 +81,17 @@
       if not exist  "$(UCHfolder)\BepInEx\plugins\" mkdir "$(UCHfolder)\BepInEx\plugins\"
       if not exist  "$(UCHfolder)\BepInEx\plugins\BackgroundBlocks\" mkdir "$(UCHfolder)\BepInEx\plugins\BackgroundBlocks\"
       copy "BackgroundBlocksMod.dll" "$(UCHfolder)\BepInEx\plugins\BackgroundBlocks" /y
+      
+      if not exist  "$(UCHfolder)\BepInEx\plugins\BackgroundBlocks\assets\" mkdir "$(UCHfolder)\BepInEx\plugins\BackgroundBlocks\assets\"
+      copy "assets\*" "$(UCHfolder)\BepInEx\plugins\BackgroundBlocks\assets\" /y
   </PostBuildEvent>
   </PropertyGroup>
 
   <PropertyGroup>
     <PreBuildEvent>
+      if not exist  "assets\" mkdir "assets\"
+      for /r "$(SolutionDir)" %%f in (*.png) do copy "%%f" "assets\"
+      for /r "$(SolutionDir)" %%f in (*.wav) do copy "%%f" "assets\"
       taskkill /f /fi "imagename eq UltimateChickenHorse.exe"
     </PreBuildEvent>
   </PropertyGroup>
