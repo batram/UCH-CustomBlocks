@@ -134,6 +134,8 @@ namespace ModBlocks.CustomBlocks
                 AddBlock<MultiStart>();
                 AddBlock<RCReceiver>();
                 AddBlock<RCTransmitter>();
+                AddBlock<FloatyCloud>();
+                AddBlock<PigFarmButton>();
 
                 Placeable.AllPlaceables = new List<Placeable> { };
 
