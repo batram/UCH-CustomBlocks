@@ -90,8 +90,8 @@
   <PropertyGroup>
     <PreBuildEvent>
       if not exist  "assets\" mkdir "assets\"
-      for /r "$(SolutionDir)" %%f in (*.png) do copy "%%f" "assets\"
-      for /r "$(SolutionDir)" %%f in (*.wav) do copy "%%f" "assets\"
+      for /r "$(SolutionDir)CustomBlocks" %%f in (*.png) do copy "%%f" "assets\" /y
+      for /r "$(SolutionDir)CustomBlocks" %%f in (*.wav) do copy "%%f" "assets\" /y
       taskkill /f /fi "imagename eq UltimateChickenHorse.exe"
     </PreBuildEvent>
   </PropertyGroup>
