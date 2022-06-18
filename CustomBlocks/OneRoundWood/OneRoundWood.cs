@@ -45,7 +45,7 @@ namespace ModBlocks.CustomBlocks
         override public Placeable CreatePlaceablePrefab()
         {
             Placeable placeable = base.CreatePlaceablePrefab();
-            placeable.gameObject.AddComponent<OneRoundWood>();
+            placeable.gameObject.AddComponent(GetType());
 
             Object.Destroy(placeable.transform.Find("SolidCollider").GetComponent<BoxCollider2D>());
 

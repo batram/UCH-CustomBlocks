@@ -31,7 +31,7 @@ namespace ModBlocks.CustomBlocks
         override public Placeable CreatePlaceablePrefab()
         {
             Placeable placeable = base.CreatePlaceablePrefab();
-            placeable.gameObject.AddComponent<ReCoin>();
+            placeable.gameObject.AddComponent(GetType());
             placeable.gameObject.GetComponent<Coin>().ForceAlwaysRespawn = true;
 
             return placeable;
