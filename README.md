@@ -2,8 +2,8 @@
 This is an `Ultimate Chicken Horse` `BepInEx` mod that allows you place pieces in the background.
 Works with online saves, but background pieces will not appear for users without the mod.
 
-https://user-images.githubusercontent.com/1382274/169524818-4b661eb7-632f-48a8-908c-9b31ed41bbb3.mp4
 
+https://user-images.githubusercontent.com/1382274/178787565-84d55c33-fe85-42cb-bc55-a39406c9480a.mp4
 
 | Key          |  Overrides                         |
 | ---          |                                --- |
