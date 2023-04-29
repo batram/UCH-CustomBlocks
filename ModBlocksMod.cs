@@ -2,6 +2,7 @@ using BepInEx;
 using HarmonyLib;
 using UnityEngine;
 using System.Reflection;
+using System.IO;
 
 [assembly: AssemblyVersion("0.2")]
 [assembly: AssemblyInformationalVersion("0.2")]
@@ -12,15 +13,20 @@ namespace ModBlocks
     public class ModBlocksMod : BaseUnityPlugin
     {
         public static bool enableModBlockMode = false;
-        public static int magicModBlockNumber = 9000;
+        public const int magicBackgroundBlockNumber = 9000;
+        public const int magicCustomBlockNumber = 5000;
 
         public static int selectedLayer = 0;
         public static bool highlightSelectedLayer = false;
         public static string defaultBackgroundLayer = "Background 1";
 
+
+        public static string path;
+
         void Awake()
         {
             Debug.Log("Moin from ModBlocks");
+            path = Path.GetDirectoryName(this.Info.Location);
 
             for (int i = 0; i < SortingLayer.layers.Length; i++)
             {
@@ -37,7 +43,7 @@ namespace ModBlocks
         public static bool IsModBlock(GameObject go)
         {
             var meta = go.GetComponent<PlaceableMetadata>();
-            return meta && meta.blockSerializeIndex >= magicModBlockNumber;
+            return meta && meta.blockSerializeIndex >= magicBackgroundBlockNumber;
         }
 
         public static ModBlock EnableModBlock(GameObject go)

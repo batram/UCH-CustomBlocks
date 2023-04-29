@@ -12,10 +12,15 @@ namespace ModBlocks.Patches
         {
             foreach (QuickSaver.SaveablePiece saveable in saveables.Values)
             {
-                if (saveable.placeable && saveable.blockID >= ModBlocksMod.magicModBlockNumber)
+                if (saveable.placeable && saveable.blockID >= ModBlocksMod.magicBackgroundBlockNumber)
                 {
                     saveable.overrideName = saveable.placeable.gameObject.name;
                     ModBlocksMod.EnableModBlock(saveable.placeable.gameObject);
+                }
+                if(saveable.placeable && saveable.blockID >= ModBlocksMod.magicCustomBlockNumber)
+                {
+                    saveable.blockID += CustomBlocks.CustomBlock.OriginalBlockCount;
+                    saveable.blockID -= ModBlocksMod.magicCustomBlockNumber;
                 }
             }
         }
@@ -24,13 +29,26 @@ namespace ModBlocks.Patches
     [HarmonyPatch(typeof(QuickSaver), nameof(QuickSaver.GetSaveablesFromMetadata))]
     static class GetSaveablesFromMetadataPatch
     {
+        static void Prefix(ref List<PlaceableMetadata> allPlaceables)
+        {
+            //TODO: filter out crap
+        }
+
+
         static void Postfix(ref List<QuickSaver.SaveablePiece> __result)
         {
             foreach (QuickSaver.SaveablePiece saveable in __result)
             {
                 Debug.Log("saveable.blockID: " + saveable.blockID);
 
-                if (saveable.placeable && saveable.blockID >= ModBlocksMod.magicModBlockNumber)
+                CustomBlocks.CustomBlock cb = saveable.placeable.GetComponentInChildren<CustomBlocks.CustomBlock>();
+
+                if (cb && saveable.blockID < ModBlocksMod.magicCustomBlockNumber)
+                {
+                    saveable.blockID = ModBlocksMod.magicCustomBlockNumber + cb.CustomId;
+                }
+
+                if (saveable.placeable && saveable.blockID >= ModBlocksMod.magicBackgroundBlockNumber)
                 {
                     var mbi = saveable.placeable.gameObject.GetComponent<ModBlock>();
                     if (mbi)
