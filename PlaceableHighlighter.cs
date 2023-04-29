@@ -21,8 +21,15 @@ namespace ModBlocks
 
         public static void SetAlpha(Placeable placeable, float value)
         {
-            placeable.CustomColor.a = value;
-            placeable.SetColor(placeable.CustomColor);
+            try
+            {
+                placeable.CustomColor.a = value;
+                placeable.SetColor(placeable.CustomColor);
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError("failed to set color on " + placeable + ": " + e);
+            }
         }
 
         public static void HighlightUpdateAll()

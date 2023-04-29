@@ -4,12 +4,12 @@ using UnityEngine;
 using System.Reflection;
 using System.IO;
 
-[assembly: AssemblyVersion("0.0.0.1")]
-[assembly: AssemblyInformationalVersion("0.0.0.1")]
+[assembly: AssemblyVersion("0.2")]
+[assembly: AssemblyInformationalVersion("0.2")]
 
 namespace ModBlocks
 {
-    [BepInPlugin("ModBlocks", "ModBlocks", "0.0.0.1")]
+    [BepInPlugin("ModBlocks", "ModBlocks", "0.2")]
     public class ModBlocksMod : BaseUnityPlugin
     {
         public static bool enableModBlockMode = false;
