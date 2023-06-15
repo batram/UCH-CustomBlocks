@@ -19,6 +19,9 @@ https://user-images.githubusercontent.com/1382274/178787565-84d55c33-fe85-42cb-b
 
 Pressing `G` in Free Play place phase (build modus) toggles the Background Modus, if it is enabled all blocks places will be background blocks.
 
+(Keybindings can be changed in the config file `BepInEx\config\CustomBlocks.cfg`.)
+
+
 # Custom Blocks
 
 ## FloatyCloud

@@ -11,11 +11,11 @@ namespace CustomBlocks.Patches
         {
             if (CustomBlocksMod.InFreePlace() && !GameState.ChatSystem.ChatMode)
             {
-                if (Input.GetKeyDown(KeyCode.G))
+                if (Input.GetKeyDown(CustomBlocksMod.ToggleBackgroundKey.Value))
                 {
                     ToggleBackgroundMode();
                 }
-                if (Input.GetKeyDown(KeyCode.L))
+                if (Input.GetKeyDown(CustomBlocksMod.SwitchLayerKey.Value))
                 {
                     if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
                     {
@@ -26,7 +26,7 @@ namespace CustomBlocks.Patches
                         SwitchLayer();
                     }
                 }
-                if (Input.GetKeyDown(KeyCode.H))
+                if (Input.GetKeyDown(CustomBlocksMod.HighlightBlockKey.Value))
                 {
                     ToggleLayerHighlight();
                 }
@@ -41,7 +41,7 @@ namespace CustomBlocks.Patches
         {
             CustomBlocksMod.enableCustomBlockMode = !CustomBlocksMod.enableCustomBlockMode;
 
-            LayerSelectionGUI.NotifyChanged("Mod Block Mode", CustomBlocksMod.enableCustomBlockMode);
+            LayerSelectionGUI.NotifyChanged("Background Block Mode", CustomBlocksMod.enableCustomBlockMode);
 
             LayerSelectionGUI.UpdatePicked();
             PlaceableHighlighter.HighlightUpdateAll();

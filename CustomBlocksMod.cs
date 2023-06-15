@@ -3,6 +3,7 @@ using HarmonyLib;
 using UnityEngine;
 using System.Reflection;
 using System.IO;
+using BepInEx.Configuration;
 
 [assembly: AssemblyVersion("0.2")]
 [assembly: AssemblyInformationalVersion("0.2")]
@@ -20,6 +21,12 @@ namespace CustomBlocks
         public static bool highlightSelectedLayer = false;
         public static string defaultBackgroundLayer = "Background 1";
 
+        public static ConfigEntry<bool> CustomBlocksEnabled;
+
+        public static ConfigEntry<KeyCode> ToggleBackgroundKey;
+        public static ConfigEntry<KeyCode> SwitchLayerKey;
+        public static ConfigEntry<KeyCode> HighlightBlockKey;
+
 
         public static string path;
 
@@ -36,8 +43,17 @@ namespace CustomBlocks
                     selectedLayer = i;
                 }
             }
+            CustomBlocksEnabled = Config.Bind("General", "CustomBlocksEnabled", true);
 
-            new Harmony("CustomBlocks").PatchAll();
+            if (CustomBlocksEnabled.Value)
+            {
+                //TODO: Enable Background and individual CustomBlocks via config
+                new Harmony("CustomBlocks").PatchAll();
+            }
+
+            ToggleBackgroundKey = Config.Bind("INPUT", "ToggleBackgroundKey", KeyCode.G, "Keybinding: Toggle background mode for blocks");
+            SwitchLayerKey = Config.Bind("INPUT", "SwitchLayerKey", KeyCode.L, "Keybinding: Switch to layer");
+            HighlightBlockKey = Config.Bind("INPUT", "HighlightBlockKey", KeyCode.H, "Keybinding: Highlight blocks on current layer");
         }
 
         public static bool IsCustomBlock(GameObject go)
