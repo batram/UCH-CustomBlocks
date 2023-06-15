@@ -4,7 +4,7 @@ using System.IO;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace ModBlocks.CustomBlocks
+namespace CustomBlocks.CustomBlocks
 {
     class RCReceiver : CustomBlock
     {

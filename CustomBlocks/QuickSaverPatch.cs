@@ -5,7 +5,7 @@ using System.IO;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace ModBlocks.CustomBlocks
+namespace CustomBlocks.CustomBlocks
 {
     [HarmonyPatch(typeof(QuickSaver), nameof(QuickSaver.MemorizeInitialLevelPlaceables))]
     static class QuickSaverPatch

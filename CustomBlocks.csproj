@@ -8,9 +8,9 @@
     <TargetFramework>net48</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <RootNamespace>BackgroundBlocks</RootNamespace>
-    <AssemblyName>BackgroundBlocksMod</AssemblyName>
-    <OutputPath>plugins\BackgroundBlocks</OutputPath>
+    <RootNamespace>CustomBlocks</RootNamespace>
+    <AssemblyName>CustomBlocksMod</AssemblyName>
+    <OutputPath>plugins\CustomBlocks</OutputPath>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
     <DebugType>None</DebugType>
@@ -78,13 +78,13 @@
   
   <PropertyGroup>
     <PostBuildEvent>
-      if not exist  "$(UCHfolder)\BepInEx\plugins\" mkdir "$(UCHfolder)\BepInEx\plugins\"
-      if not exist  "$(UCHfolder)\BepInEx\plugins\BackgroundBlocks\" mkdir "$(UCHfolder)\BepInEx\plugins\BackgroundBlocks\"
-      copy "BackgroundBlocksMod.dll" "$(UCHfolder)\BepInEx\plugins\BackgroundBlocks" /y
-      
-      if not exist  "$(UCHfolder)\BepInEx\plugins\BackgroundBlocks\assets\" mkdir "$(UCHfolder)\BepInEx\plugins\BackgroundBlocks\assets\"
-      copy "assets\*" "$(UCHfolder)\BepInEx\plugins\BackgroundBlocks\assets\" /y
-  </PostBuildEvent>
+		if not exist  "$(UCHfolder)\BepInEx\plugins\" mkdir "$(UCHfolder)\BepInEx\plugins\"
+		if not exist  "$(UCHfolder)\BepInEx\plugins\CustomBlocks\" mkdir "$(UCHfolder)\BepInEx\plugins\CustomBlocks\"
+		copy "CustomBlocksMod.dll" "$(UCHfolder)\BepInEx\plugins\CustomBlocks" /y
+
+		if not exist  "$(UCHfolder)\BepInEx\plugins\CustomBlocks\assets\" mkdir "$(UCHfolder)\BepInEx\plugins\CustomBlocks\assets\"
+		copy "assets\*" "$(UCHfolder)\BepInEx\plugins\CustomBlocks\assets\" /y
+	</PostBuildEvent>
   </PropertyGroup>
 
   <PropertyGroup>

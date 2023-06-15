@@ -2,13 +2,13 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 
-namespace ModBlocks.CustomBlocks
+namespace CustomBlocks.CustomBlocks
 {
     class CustomBlock : Placeable
     {
         public static Dictionary<int, Placeable> Blocks = new Dictionary<int, Placeable>();
 
-        public static string ImageDir = Path.Combine(ModBlocksMod.path, "assets");
+        public static string ImageDir = Path.Combine(CustomBlocksMod.path, "assets");
 
         public static int OriginalBlockCount;
 
@@ -135,7 +135,6 @@ namespace ModBlocks.CustomBlocks
                 AddBlock<RCReceiver>();
                 AddBlock<RCTransmitter>();
                 AddBlock<FloatyCloud>();
-                AddBlock<PigFarmButton>();
 
                 Placeable.AllPlaceables = new List<Placeable> { };
 

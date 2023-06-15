@@ -5,7 +5,7 @@ using GameEvent;
 using HarmonyLib;
 using UnityEngine;
 
-namespace ModBlocks.Patches
+namespace CustomBlocks.Patches
 {
     [HarmonyPatch(typeof(FreePlayControl), nameof(FreePlayControl.handleEvent))]
     static class FreePlayControlPatch
@@ -28,23 +28,23 @@ namespace ModBlocks.Patches
         // so pieces are visible in selectable in place phase
         static void ToggleLayersAndCollider(GameControl.GamePhase phase)
         {
-            foreach (ModBlock modblock in GameObject.FindObjectsOfType<ModBlock>())
+            foreach (CustomBlock customblock in GameObject.FindObjectsOfType<CustomBlock>())
             {
                 if (phase != GameControl.GamePhase.PLAY)
                 {
-                    PlaceableHighlighter.HighlightAlpha(modblock.placeable);
+                    PlaceableHighlighter.HighlightAlpha(customblock.placeable);
 
                     // collider needs to be active, to be selectable
-                    modblock.SetCollide(true);
+                    customblock.SetCollide(true);
 
                     // change sortingLayer to be visible in place phase
-                    modblock.SetLayer("Default");
+                    customblock.SetLayer("Default");
                 }
                 else
                 {
-                    PlaceableHighlighter.ResetAlpha(modblock.placeable);
-                    modblock.SetCollide(false);
-                    modblock.RestoreLayer();
+                    PlaceableHighlighter.ResetAlpha(customblock.placeable);
+                    customblock.SetCollide(false);
+                    customblock.RestoreLayer();
                 }
             }
 

@@ -3,7 +3,7 @@ using System;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace ModBlocks.CustomBlocks
+namespace CustomBlocks.CustomBlocks
 {
     [HarmonyPatch(typeof(InventoryBook), nameof(InventoryBook.Awake))]
     static class InventoryBookAwakePatch

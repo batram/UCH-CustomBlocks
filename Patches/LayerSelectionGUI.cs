@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace ModBlocks.Patches
+namespace CustomBlocks.Patches
 {
     [HarmonyPatch(typeof(FreeplayFullMessage), nameof(FreeplayFullMessage.Awake))]
     static class FreeplayFullMessagePatch
@@ -47,12 +47,12 @@ namespace ModBlocks.Patches
             Text text = highlight_toggle.GetComponentInChildren<Text>();
             text.text = "Highlight";
             text.fontSize = 16;
-            highlight_toggle.isOn = ModBlocksMod.highlightSelectedLayer;
+            highlight_toggle.isOn = CustomBlocksMod.highlightSelectedLayer;
 
             highlight_toggle.onValueChanged.AddListener((value) => {  
                 text.text = "Highlight " + value;
-                LayerSelectionGUI.NotifyChanged("Highlight Layer", ModBlocksMod.highlightSelectedLayer);
-                ModBlocksMod.highlightSelectedLayer = highlight_toggle.isOn;
+                LayerSelectionGUI.NotifyChanged("Highlight Layer", CustomBlocksMod.highlightSelectedLayer);
+                CustomBlocksMod.highlightSelectedLayer = highlight_toggle.isOn;
                 PlaceableHighlighter.HighlightUpdateAll();
             });
      
@@ -64,11 +64,11 @@ namespace ModBlocks.Patches
             layer_dropdown.ClearOptions();
             layer_dropdown.AddOptions(m_DropOptions);
             layer_dropdown.Select();
-            layer_dropdown.value = ModBlocksMod.selectedLayer;
+            layer_dropdown.value = CustomBlocksMod.selectedLayer;
 
             layer_dropdown.onValueChanged.AddListener((value) => {
-                ModBlocksMod.selectedLayer = value;
-                UserMessageManager.Instance.UserMessage("Layer selected: " + SortingLayer.layers[ModBlocksMod.selectedLayer].name.PadLeft(20, ' '));
+                CustomBlocksMod.selectedLayer = value;
+                UserMessageManager.Instance.UserMessage("Layer selected: " + SortingLayer.layers[CustomBlocksMod.selectedLayer].name.PadLeft(20, ' '));
                 LayerSelectionGUI.UpdatePicked();
                 PlaceableHighlighter.HighlightUpdateAll();
             });
@@ -110,14 +110,14 @@ namespace ModBlocks.Patches
             {
                 if (cur.Piece)
                 {
-                    if (ModBlocksMod.enableModBlockMode)
+                    if (CustomBlocksMod.enableCustomBlockMode)
                     {
-                        ModBlock mbi = ModBlocksMod.EnableModBlock(cur.Piece.gameObject);
-                        mbi.layer = SortingLayer.layers[ModBlocksMod.selectedLayer].name;
+                        CustomBlock mbi = CustomBlocksMod.EnableCustomBlock(cur.Piece.gameObject);
+                        mbi.layer = SortingLayer.layers[CustomBlocksMod.selectedLayer].name;
                     }
                     else
                     {
-                        ModBlocksMod.DisableModBlock(cur.Piece.gameObject);
+                        CustomBlocksMod.DisableCustomBlock(cur.Piece.gameObject);
                     }
                 }
             }

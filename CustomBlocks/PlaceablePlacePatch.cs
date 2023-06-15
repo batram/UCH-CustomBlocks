@@ -5,7 +5,7 @@ using System.IO;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace ModBlocks.CustomBlocks
+namespace CustomBlocks.CustomBlocks
 {
     [HarmonyPatch(typeof(Placeable), nameof(Placeable.Place), new Type[] { typeof(int), typeof(bool), typeof(bool) })]
     static class PlaceablePlacePatch

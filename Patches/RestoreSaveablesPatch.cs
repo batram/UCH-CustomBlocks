@@ -3,7 +3,7 @@ using HarmonyLib;
 using UnityEngine;
 using System.Collections.Generic;
 
-namespace ModBlocks.Patches
+namespace CustomBlocks.Patches
 {
     [HarmonyPatch(typeof(QuickSaver), nameof(QuickSaver.RestoreSaveables))]
     static class RestoreSaveablesPatch
@@ -12,15 +12,15 @@ namespace ModBlocks.Patches
         {
             foreach (QuickSaver.SaveablePiece saveable in saveables.Values)
             {
-                if (saveable.placeable && saveable.blockID >= ModBlocksMod.magicBackgroundBlockNumber)
+                if (saveable.placeable && saveable.blockID >= CustomBlocksMod.magicBackgroundBlockNumber)
                 {
                     saveable.overrideName = saveable.placeable.gameObject.name;
-                    ModBlocksMod.EnableModBlock(saveable.placeable.gameObject);
+                    CustomBlocksMod.EnableCustomBlock(saveable.placeable.gameObject);
                 }
-                if(saveable.placeable && saveable.blockID >= ModBlocksMod.magicCustomBlockNumber)
+                if(saveable.placeable && saveable.blockID >= CustomBlocksMod.magicCustomBlockNumber)
                 {
                     saveable.blockID += CustomBlocks.CustomBlock.OriginalBlockCount;
-                    saveable.blockID -= ModBlocksMod.magicCustomBlockNumber;
+                    saveable.blockID -= CustomBlocksMod.magicCustomBlockNumber;
                 }
             }
         }
@@ -43,14 +43,14 @@ namespace ModBlocks.Patches
 
                 CustomBlocks.CustomBlock cb = saveable.placeable.GetComponentInChildren<CustomBlocks.CustomBlock>();
 
-                if (cb && saveable.blockID < ModBlocksMod.magicCustomBlockNumber)
+                if (cb && saveable.blockID < CustomBlocksMod.magicCustomBlockNumber)
                 {
-                    saveable.blockID = ModBlocksMod.magicCustomBlockNumber + cb.CustomId;
+                    saveable.blockID = CustomBlocksMod.magicCustomBlockNumber + cb.CustomId;
                 }
 
-                if (saveable.placeable && saveable.blockID >= ModBlocksMod.magicBackgroundBlockNumber)
+                if (saveable.placeable && saveable.blockID >= CustomBlocksMod.magicBackgroundBlockNumber)
                 {
-                    var mbi = saveable.placeable.gameObject.GetComponent<ModBlock>();
+                    var mbi = saveable.placeable.gameObject.GetComponent<CustomBlock>();
                     if (mbi)
                     {
                         mbi.PersistInGOName();

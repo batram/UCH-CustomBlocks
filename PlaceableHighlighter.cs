@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace ModBlocks
+namespace CustomBlocks
 {
     public class PlaceableHighlighter
     {
@@ -48,16 +48,16 @@ namespace ModBlocks
             }
 
             // highlight only in Place Phase
-            if (!ModBlocksMod.InFreePlace())
+            if (!CustomBlocksMod.InFreePlace())
             {
                 PlaceableHighlighter.ResetAlpha(pla);
             }
             else
             {
                 // revert to normal scheme if layer highlight is not active
-                if (!ModBlocksMod.highlightSelectedLayer)
+                if (!CustomBlocksMod.highlightSelectedLayer)
                 {
-                    if (ModBlocksMod.IsModBlock(pla.gameObject))
+                    if (CustomBlocksMod.IsCustomBlock(pla.gameObject))
                     {
                         PlaceableHighlighter.HighlightAlpha(pla);
                     }
@@ -69,9 +69,9 @@ namespace ModBlocks
                 else
                 {
                     // highlight (as solid) normal blocks if we are not in background mode
-                    if (!ModBlocksMod.enableModBlockMode)
+                    if (!CustomBlocksMod.enableCustomBlockMode)
                     {
-                        if (ModBlocksMod.IsModBlock(pla.gameObject))
+                        if (CustomBlocksMod.IsCustomBlock(pla.gameObject))
                         {
                             PlaceableHighlighter.LowlightAlpha(pla);
                         }
@@ -82,8 +82,8 @@ namespace ModBlocks
 
                     }
                     // highlight mod blocks that are on the current layer
-                    else if (pla.gameObject.GetComponent<ModBlock>()
-                    && pla.gameObject.GetComponent<ModBlock>().layer == SortingLayer.layers[ModBlocksMod.selectedLayer].name)
+                    else if (pla.gameObject.GetComponent<CustomBlock>()
+                    && pla.gameObject.GetComponent<CustomBlock>().layer == SortingLayer.layers[CustomBlocksMod.selectedLayer].name)
                     {
                         PlaceableHighlighter.HighlightAlpha(pla);
                     }

@@ -5,7 +5,7 @@ using System.IO;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace ModBlocks.CustomBlocks
+namespace CustomBlocks.CustomBlocks
 {
     [HarmonyPatch(typeof(TwitchChatController), nameof(TwitchChatController.Awake))]
     static class TwitchChatControllerAwakePatch

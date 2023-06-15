@@ -2,7 +2,7 @@ using HarmonyLib;
 using System;
 using UnityEngine;
 
-namespace ModBlocks.Patches
+namespace CustomBlocks.Patches
 {
     [HarmonyPatch(typeof(PiecePlacementCursor), nameof(PiecePlacementCursor.SetPiece))]
     static class PiecePlacementCursorSetPiecePatch
@@ -11,14 +11,14 @@ namespace ModBlocks.Patches
         {
             if (piece && piece.gameObject)
             {
-                if (ModBlocksMod.enableModBlockMode)
+                if (CustomBlocksMod.enableCustomBlockMode)
                 {
-                    ModBlock mbi = ModBlocksMod.EnableModBlock(piece.gameObject);
-                    mbi.layer = SortingLayer.layers[ModBlocksMod.selectedLayer].name;
+                    CustomBlock mbi = CustomBlocksMod.EnableCustomBlock(piece.gameObject);
+                    mbi.layer = SortingLayer.layers[CustomBlocksMod.selectedLayer].name;
                 }
-                else if (ModBlocksMod.IsModBlock(piece.gameObject))
+                else if (CustomBlocksMod.IsCustomBlock(piece.gameObject))
                 {
-                    ModBlocksMod.DisableModBlock(piece.gameObject);
+                    CustomBlocksMod.DisableCustomBlock(piece.gameObject);
                 }
                 PlaceableHighlighter.HighlightUpdateBlock(piece);
             }

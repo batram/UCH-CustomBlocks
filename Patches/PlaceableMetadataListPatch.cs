@@ -4,21 +4,21 @@ using System.Reflection.Emit;
 using HarmonyLib;
 using UnityEngine;
 
-namespace ModBlocks.Patches
+namespace CustomBlocks.Patches
 {
     [HarmonyPatch(typeof(PlaceableMetadataList), nameof(PlaceableMetadataList.GetPrefabForPlaceableIndex))]
     static class PlaceableMetadataListPatch
     {
         static void Prefix(ref int idx)
         {
-            if (idx >= ModBlocksMod.magicBackgroundBlockNumber)
+            if (idx >= CustomBlocksMod.magicBackgroundBlockNumber)
             {
-                idx -= ModBlocksMod.magicBackgroundBlockNumber;
+                idx -= CustomBlocksMod.magicBackgroundBlockNumber;
             }
-            if (idx >= ModBlocksMod.magicCustomBlockNumber)
+            if (idx >= CustomBlocksMod.magicCustomBlockNumber)
             {
                 idx += CustomBlocks.CustomBlock.OriginalBlockCount;
-                idx -= ModBlocksMod.magicCustomBlockNumber;
+                idx -= CustomBlocksMod.magicCustomBlockNumber;
             }
         }
     }

@@ -7,12 +7,12 @@ using System.IO;
 [assembly: AssemblyVersion("0.2")]
 [assembly: AssemblyInformationalVersion("0.2")]
 
-namespace ModBlocks
+namespace CustomBlocks
 {
-    [BepInPlugin("ModBlocks", "ModBlocks", "0.2")]
-    public class ModBlocksMod : BaseUnityPlugin
+    [BepInPlugin("CustomBlocks", "CustomBlocks", "0.2")]
+    public class CustomBlocksMod : BaseUnityPlugin
     {
-        public static bool enableModBlockMode = false;
+        public static bool enableCustomBlockMode = false;
         public const int magicBackgroundBlockNumber = 9000;
         public const int magicCustomBlockNumber = 5000;
 
@@ -25,7 +25,7 @@ namespace ModBlocks
 
         void Awake()
         {
-            Debug.Log("Moin from ModBlocks");
+            Debug.Log("Moin from CustomBlocks");
             path = Path.GetDirectoryName(this.Info.Location);
 
             for (int i = 0; i < SortingLayer.layers.Length; i++)
@@ -37,28 +37,28 @@ namespace ModBlocks
                 }
             }
 
-            new Harmony("ModBlocks").PatchAll();
+            new Harmony("CustomBlocks").PatchAll();
         }
 
-        public static bool IsModBlock(GameObject go)
+        public static bool IsCustomBlock(GameObject go)
         {
             var meta = go.GetComponent<PlaceableMetadata>();
             return meta && meta.blockSerializeIndex >= magicBackgroundBlockNumber;
         }
 
-        public static ModBlock EnableModBlock(GameObject go)
+        public static CustomBlock EnableCustomBlock(GameObject go)
         {
-            ModBlock mbi = go.GetComponent<ModBlock>();
+            CustomBlock mbi = go.GetComponent<CustomBlock>();
             if (mbi == null)
             {
-                mbi = go.AddComponent<ModBlock>();
+                mbi = go.AddComponent<CustomBlock>();
             }
             return mbi;
         }
 
-        public static void DisableModBlock(GameObject go)
+        public static void DisableCustomBlock(GameObject go)
         {
-            Object.Destroy(go.GetComponent<ModBlock>());
+            Object.Destroy(go.GetComponent<CustomBlock>());
         }
 
         public static bool InFreePlace()

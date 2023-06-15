@@ -2,7 +2,7 @@ using HarmonyLib;
 using System;
 using UnityEngine;
 
-namespace ModBlocks.CustomBlocks
+namespace CustomBlocks.CustomBlocks
 {
     [HarmonyPatch(typeof(PlaceableMetadataList), nameof(PlaceableMetadataList.Awake))]
     static class PlaceableMetadataListAwakePatch

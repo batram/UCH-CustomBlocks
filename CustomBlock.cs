@@ -2,12 +2,12 @@
 using System.Text.RegularExpressions;
 using UnityEngine;
 
-namespace ModBlocks
+namespace CustomBlocks
 {
     [System.Serializable]
-    public class ModBlock : MonoBehaviour
+    public class CustomBlock : MonoBehaviour
     {
-        public static string nameTag = " [ModBlock]";
+        public static string nameTag = " [CustomBlock]";
         public static string startMarker = " mbi::";
         public static string endMarker = "::mbi";
         public string layer;
@@ -26,15 +26,15 @@ namespace ModBlocks
 
         void Awake()
         {
-            Debug.Log("ModBlockInfo Awake: " + this.gameObject.name);
-            if (meta.blockSerializeIndex < ModBlocksMod.magicBackgroundBlockNumber)
+            Debug.Log("CustomBlockInfo Awake: " + this.gameObject.name);
+            if (meta.blockSerializeIndex < CustomBlocksMod.magicBackgroundBlockNumber)
             {
-                meta.blockSerializeIndex += ModBlocksMod.magicBackgroundBlockNumber;
+                meta.blockSerializeIndex += CustomBlocksMod.magicBackgroundBlockNumber;
             }
 
             ParseNameData();
             TagName();
-            if (ModBlocksMod.InFreePlace())
+            if (CustomBlocksMod.InFreePlace())
             {
                 PlaceableHighlighter.HighlightAlpha(placeable);
             } else
@@ -46,13 +46,13 @@ namespace ModBlocks
 
         void OnDestroy()
         {
-            Debug.Log("ModBlockInfo destroyed: " + this.gameObject.name);
+            Debug.Log("CustomBlockInfo destroyed: " + this.gameObject.name);
 
             DeTagName();
 
-            if (meta.blockSerializeIndex >= ModBlocksMod.magicBackgroundBlockNumber)
+            if (meta.blockSerializeIndex >= CustomBlocksMod.magicBackgroundBlockNumber)
             {
-                meta.blockSerializeIndex -= ModBlocksMod.magicBackgroundBlockNumber;
+                meta.blockSerializeIndex -= CustomBlocksMod.magicBackgroundBlockNumber;
             }
 
             this.SetLayer("Default", false);
@@ -94,7 +94,7 @@ namespace ModBlocks
             }
             catch (Exception e)
             {
-                Debug.LogError("ModBlockInfo parse failed: " + e);
+                Debug.LogError("CustomBlockInfo parse failed: " + e);
             }
         }
         public void ClearNameData()
