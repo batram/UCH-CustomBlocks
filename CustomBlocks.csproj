@@ -78,22 +78,18 @@
   
   <PropertyGroup>
     <PostBuildEvent>
-		if not exist  "$(UCHfolder)\BepInEx\plugins\" mkdir "$(UCHfolder)\BepInEx\plugins\"
-		if not exist  "$(UCHfolder)\BepInEx\plugins\CustomBlocks\" mkdir "$(UCHfolder)\BepInEx\plugins\CustomBlocks\"
-		copy "CustomBlocksMod.dll" "$(UCHfolder)\BepInEx\plugins\CustomBlocks" /y
+      if not exist  "$(UCHfolder)\BepInEx\plugins\" mkdir "$(UCHfolder)\BepInEx\plugins\"
+      if not exist  "$(UCHfolder)\BepInEx\plugins\CustomBlocks\" mkdir "$(UCHfolder)\BepInEx\plugins\CustomBlocks\"
+      copy "CustomBlocksMod.dll" "$(UCHfolder)\BepInEx\plugins\CustomBlocks" /y
 
-		if not exist  "$(UCHfolder)\BepInEx\plugins\CustomBlocks\assets\" mkdir "$(UCHfolder)\BepInEx\plugins\CustomBlocks\assets\"
-		copy "assets\*" "$(UCHfolder)\BepInEx\plugins\CustomBlocks\assets\" /y
-	</PostBuildEvent>
-  </PropertyGroup>
-
-  <PropertyGroup>
+      if not exist  "$(UCHfolder)\BepInEx\plugins\CustomBlocks\assets\" mkdir "$(UCHfolder)\BepInEx\plugins\CustomBlocks\assets\"
+      copy "assets\*" "$(UCHfolder)\BepInEx\plugins\CustomBlocks\assets\" /y
+    </PostBuildEvent>
     <PreBuildEvent>
-      if not exist  "assets\" mkdir "assets\"
-      for /r "$(SolutionDir)CustomBlocks" %%f in (*.png) do copy "%%f" "assets\" /y
-      for /r "$(SolutionDir)CustomBlocks" %%f in (*.wav) do copy "%%f" "assets\" /y
+      if not exist  "assets" mkdir "assets"
+      for /r "..\..\CustomBlocks" %%f in (*.png) do copy "%%f" "assets" /y
+      for /r "..\..\CustomBlocks" %%f in (*.wav) do copy "%%f" "assets" /y
       taskkill /f /fi "imagename eq UltimateChickenHorse.exe"
     </PreBuildEvent>
   </PropertyGroup>
-
 </Project>
