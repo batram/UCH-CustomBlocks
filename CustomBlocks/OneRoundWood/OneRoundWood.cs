@@ -11,7 +11,7 @@ namespace CustomBlocks.CustomBlocks
         public override int BasedId { get { return 0; } }
         public override string BasePlaceableName { get { return "01_1x1 Box"; } }
         public override string BasePickableBlockName { get { return "01_1x1 Box_Pick"; } }
-        public override string Name { get { return typeof(OneRoundWood).Name; } }
+        public override string Name { get { return GetType().Name; } }
         public new static int StaticId { get; set; }
         public override int CustomId
         {

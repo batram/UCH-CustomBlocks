@@ -11,7 +11,7 @@ namespace CustomBlocks.CustomBlocks
         public override int BasedId { get { return 4; } }
         public override string BasePlaceableName { get { return "05_Plank5"; } }
         public override string BasePickableBlockName { get { return "05_Plank5_Pick"; } }
-        public override string Name { get { return typeof(FloatyCloud).Name; } }
+        public override string Name { get { return GetType().Name; } }
         public new static int StaticId { get; set; }
         public override int CustomId
         {

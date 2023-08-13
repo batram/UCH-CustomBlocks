@@ -11,7 +11,7 @@ namespace CustomBlocks.CustomBlocks
         public override int BasedId { get { return 32; } }
         public override string BasePlaceableName { get { return "Glue"; } }
         public override string BasePickableBlockName { get { return "Glue_Pick"; } }
-        public override string Name { get { return typeof(RCReceiver).Name; } }
+        public override string Name { get { return GetType().Name; } }
         public new static int StaticId { get; set; }
         public override int CustomId
         {

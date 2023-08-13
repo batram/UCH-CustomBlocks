@@ -11,7 +11,7 @@ namespace CustomBlocks.CustomBlocks
         public override int BasedId { get { return 38; } }
         public override string BasePlaceableName { get { return "StartPlank"; } }
         public override string BasePickableBlockName { get { return "StartPlank_Pick"; } }
-        public override string Name { get { return typeof(MultiStart).Name; } }
+        public override string Name { get { return GetType().Name; } }
         public new static int StaticId { get; set; }
         public override int CustomId
         {
