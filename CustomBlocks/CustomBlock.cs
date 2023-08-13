@@ -135,6 +135,7 @@ namespace CustomBlocks.CustomBlocks
                 AddBlock<RCReceiver>();
                 AddBlock<RCTransmitter>();
                 AddBlock<FloatyCloud>();
+                AddBlock<PigFarmButton>();
 
                 Placeable.AllPlaceables = new List<Placeable> { };
 
