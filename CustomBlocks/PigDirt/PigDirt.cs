@@ -50,13 +50,26 @@ namespace CustomBlocks.CustomBlocks
             return pb;
         }
 
-        void OnTriggerEnter2D(Collider2D col)
+        void Update()
         {
-            if (placed)
+            if (this.GetComponent<Coin>() != null && this.GetComponent<Coin>().Placed)
             {
-                Debug.Log(col.gameObject.name + " : " + gameObject.name + " : " + Time.time);
+                //Keep Trigger Collider active to smear dirt and add flies
+                this.transform.Find("TriggerCollider").GetComponent<BoxCollider2D>().enabled = true;
+            }
+        }
 
+        private void OnTriggerEnter2D(Collider2D col)
+        {
+
+            if (placed || (this.GetComponent<Coin>() != null && this.GetComponent<Coin>().Placed))
+            {
                 Character c = col.GetComponentInParent<Character>();
+                if(c != null && c.spawnedFlies.Count == 0)
+                {
+                    c.CreateFlies();
+                }
+
                 //TODO: smear coin to different players, with transfer cooldown
             }
         }
@@ -145,10 +158,7 @@ namespace CustomBlocks.CustomBlocks
                     __result.text.text = "Pig Dirt";
                 }
             }
-        }
-
-
-        
+        }        
 
         [HarmonyPatch(typeof(ScoreLine), "AddScorePointBlock")]
         static class ScoreLineAddScorePointBlockPatch
