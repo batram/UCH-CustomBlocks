@@ -130,6 +130,9 @@ namespace CustomBlocks.CustomBlocks
                 {
                     piggy[6] = og[6];
                 }
+
+                SmokePool.Instance.SpawnSmoke(SmokePool.SmokeType.POOF, c.transform.position, 0.5f);
+
                 c.CharacterSprite = Character.Animals.ELEPHANT;
                 c.OutfitArt.SwitchToCharacter();
                 c.SetOutfitsFromArray(piggy);
