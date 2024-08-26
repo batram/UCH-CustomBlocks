@@ -137,6 +137,7 @@ namespace CustomBlocks.CustomBlocks
                 AddBlock<FloatyCloud>();
                 AddBlock<PigFarmButton>();
                 AddBlock<PigDirt>();
+                AddBlock<ChickenRoll>();
 
                 Placeable.AllPlaceables = new List<Placeable> { };
 
