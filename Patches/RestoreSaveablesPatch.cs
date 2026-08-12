@@ -1,3 +1,4 @@
+using CustomBlocks.Backgrounds;
 using System.Reflection.Emit;
 using HarmonyLib;
 using UnityEngine;
@@ -15,11 +16,11 @@ namespace CustomBlocks.Patches
                 if (saveable.placeable && saveable.blockID >= CustomBlocksMod.magicBackgroundBlockNumber)
                 {
                     saveable.overrideName = saveable.placeable.gameObject.name;
-                    CustomBlocksMod.EnableCustomBlock(saveable.placeable.gameObject);
+                    CustomBlocksMod.EnableBackgroundBlock(saveable.placeable.gameObject);
                 }
                 if(saveable.placeable && saveable.blockID >= CustomBlocksMod.magicCustomBlockNumber)
                 {
-                    saveable.blockID += CustomBlocks.CustomBlock.OriginalBlockCount;
+                    saveable.blockID += Core.CustomBlock.OriginalBlockCount;
                     saveable.blockID -= CustomBlocksMod.magicCustomBlockNumber;
                 }
             }
@@ -41,7 +42,7 @@ namespace CustomBlocks.Patches
             {
                 Debug.Log("saveable.blockID: " + saveable.blockID);
 
-                CustomBlocks.CustomBlock cb = saveable.placeable.GetComponentInChildren<CustomBlocks.CustomBlock>();
+                Core.CustomBlock cb = saveable.placeable.GetComponentInChildren<Core.CustomBlock>();
 
                 if (cb && saveable.blockID < CustomBlocksMod.magicCustomBlockNumber)
                 {
@@ -50,7 +51,7 @@ namespace CustomBlocks.Patches
 
                 if (saveable.placeable && saveable.blockID >= CustomBlocksMod.magicBackgroundBlockNumber)
                 {
-                    var mbi = saveable.placeable.gameObject.GetComponent<CustomBlock>();
+                    var mbi = saveable.placeable.gameObject.GetComponent<BackgroundBlock>();
                     if (mbi)
                     {
                         mbi.PersistInGOName();

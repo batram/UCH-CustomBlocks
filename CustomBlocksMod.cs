@@ -1,4 +1,5 @@
 using BepInEx;
+using CustomBlocks.Backgrounds;
 using HarmonyLib;
 using UnityEngine;
 using System.Reflection;
@@ -13,7 +14,7 @@ namespace CustomBlocks
     [BepInPlugin("CustomBlocks", "CustomBlocks", "0.2")]
     public class CustomBlocksMod : BaseUnityPlugin
     {
-        public static bool enableCustomBlockMode = false;
+        public static bool enableBackgroundMode = false;
         public const int magicBackgroundBlockNumber = 9000;
         public const int magicCustomBlockNumber = 5000;
 
@@ -56,25 +57,25 @@ namespace CustomBlocks
             HighlightBlockKey = Config.Bind("INPUT", "HighlightBlockKey", KeyCode.H, "Keybinding: Highlight blocks on current layer");
         }
 
-        public static bool IsCustomBlock(GameObject go)
+        public static bool IsBackgroundBlock(GameObject go)
         {
             var meta = go.GetComponent<PlaceableMetadata>();
             return meta && meta.blockSerializeIndex >= magicBackgroundBlockNumber;
         }
 
-        public static CustomBlock EnableCustomBlock(GameObject go)
+        public static BackgroundBlock EnableBackgroundBlock(GameObject go)
         {
-            CustomBlock mbi = go.GetComponent<CustomBlock>();
+            BackgroundBlock mbi = go.GetComponent<BackgroundBlock>();
             if (mbi == null)
             {
-                mbi = go.AddComponent<CustomBlock>();
+                mbi = go.AddComponent<BackgroundBlock>();
             }
             return mbi;
         }
 
-        public static void DisableCustomBlock(GameObject go)
+        public static void DisableBackgroundBlock(GameObject go)
         {
-            Object.Destroy(go.GetComponent<CustomBlock>());
+            Object.Destroy(go.GetComponent<BackgroundBlock>());
         }
 
         public static bool InFreePlace()

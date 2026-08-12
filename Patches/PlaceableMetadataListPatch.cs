@@ -17,7 +17,7 @@ namespace CustomBlocks.Patches
             }
             if (idx >= CustomBlocksMod.magicCustomBlockNumber)
             {
-                idx += CustomBlocks.CustomBlock.OriginalBlockCount;
+                idx += Core.CustomBlock.OriginalBlockCount;
                 idx -= CustomBlocksMod.magicCustomBlockNumber;
             }
         }
