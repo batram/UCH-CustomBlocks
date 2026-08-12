@@ -12,17 +12,17 @@ namespace CustomBlocks.Core.Patches
     {
         static void Postfix(TabletBlockList __instance, bool isDisabled)
         {
-            if (CustomBlock.Blocks == null)
+            if (!CustomBlockRegistry.Initialized || CustomBlockRegistry.Count == 0)
             {
-                Debug.Log("Blocks null");
+                Debug.Log("No custom blocks initialized yet");
                 return;
             }
             var c = __instance.tabletBlocks.Length;
             var shrink = 0;
 
-            Array.Resize(ref __instance.tabletBlocks, __instance.tabletBlocks.Length + CustomBlock.Blocks.Count);
+            Array.Resize(ref __instance.tabletBlocks, __instance.tabletBlocks.Length + CustomBlockRegistry.Count);
 
-            foreach (Placeable go in CustomBlock.Blocks.Values)
+            foreach (Placeable go in CustomBlockRegistry.Prefabs)
             {
                 if (go)
                 {

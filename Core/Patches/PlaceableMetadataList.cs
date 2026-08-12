@@ -11,11 +11,11 @@ namespace CustomBlocks.Core.Patches
         {
             if (__instance && __instance.allBlockPrefabs != null && __instance.allBlockPrefabs.Length != 0)
             {
-                CustomBlock.InitBlocks();
+                CustomBlockRegistry.InitBlocks();
 
                 var c = __instance.allBlockPrefabs.Length;
-                Array.Resize(ref __instance.allBlockPrefabs, __instance.allBlockPrefabs.Length + CustomBlock.Blocks.Count);
-                foreach (Placeable cb in CustomBlock.Blocks.Values)
+                Array.Resize(ref __instance.allBlockPrefabs, __instance.allBlockPrefabs.Length + CustomBlockRegistry.Count);
+                foreach (Placeable cb in CustomBlockRegistry.Prefabs)
                 {
                     if (cb)
                     {

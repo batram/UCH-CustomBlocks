@@ -16,27 +16,7 @@ namespace CustomBlocks.Blocks
         public override int BasedId { get { return 0; } }
         public override string BasePlaceableName { get { return "01_1x1 Box"; } }
         public override string BasePickableBlockName { get { return "01_1x1 Box_Pick"; } }
-        public override string Name { get { return GetType().Name; } }
-        public new static int StaticId { get; set; }
-        public override int CustomId
-        {
-            get { return StaticId; }
-            set { StaticId = value; }
-        }
 
-        protected Sprite sp;
-        new public Sprite sprite
-        {
-            get
-            {
-                if (sp == null)
-                {
-                    Texture2D texture = LoadTexture(Path.Combine(CustomBlock.ImageDir, this.Name + ".png"));
-                    sp = Sprite.Create(texture, new Rect(0, 0, 54, 54), new Vector2(0, 0), 100f);
-                }
-                return sp;
-            }
-        }
 
         public bool sound_playing = false;
 
@@ -49,7 +29,7 @@ namespace CustomBlocks.Blocks
             {
                 if (_sound == null)
                 {
-                    _sound = new SoundPlayer(Path.Combine(CustomBlock.ImageDir, this.Name + ".wav"));
+                    _sound = new SoundPlayer(Path.Combine(AssetDir, this.Name + ".wav"));
                     _sound.Load();
                 }
                 return _sound;

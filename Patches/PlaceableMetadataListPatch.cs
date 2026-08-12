@@ -17,8 +17,15 @@ namespace CustomBlocks.Patches
             }
             if (idx >= CustomBlocksMod.magicCustomBlockNumber)
             {
-                idx += Core.CustomBlock.OriginalBlockCount;
-                idx -= CustomBlocksMod.magicCustomBlockNumber;
+                int serializeIndex;
+                if (Core.CustomBlockRegistry.TryGetSerializeIndexForSaveId(idx - CustomBlocksMod.magicCustomBlockNumber, out serializeIndex))
+                {
+                    idx = serializeIndex;
+                }
+                else
+                {
+                    Debug.LogError("CustomBlocks: no block registered for save id " + (idx - CustomBlocksMod.magicCustomBlockNumber));
+                }
             }
         }
     }

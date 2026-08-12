@@ -1,33 +1,53 @@
-using CustomBlocks.Blocks;
-using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 
 namespace CustomBlocks.Core
 {
-    class CustomBlock : Placeable
+    // Base class for custom blocks. Derive from it, override the Base* names of
+    // the vanilla block to clone, then CustomBlockRegistry.Register<T>() it from
+    // your plugin's Awake.
+    public class CustomBlock : Placeable
     {
-        public static Dictionary<int, Placeable> Blocks = new Dictionary<int, Placeable>();
-
-        public static string ImageDir = Path.Combine(CustomBlocksMod.path, "assets");
-
-        public static int OriginalBlockCount;
-
         public virtual int BasedId { get; }
         public virtual string BasePlaceableName { get; }
         public virtual string BasePickableBlockName { get; }
-        public new virtual string Name { get; }
+        public new virtual string Name { get { return GetType().Name; } }
 
-        public static int StaticId { get; set;  }
+        // Stable identity, resolved via the registry so it also works on the
+        // component instances AddComponent creates at runtime.
+        public int CustomId { get { return CustomBlockRegistry.GetCustomId(GetType()); } }
+        public int SerializeIndex { get { return CustomBlockRegistry.GetSerializeIndex(GetType()); } }
 
-        virtual public int CustomId
+        // Assets live next to the assembly that defines the block, so blocks
+        // from other mods load their own sprites and sounds.
+        public virtual string AssetDir
         {
-            get { return StaticId; }
-            set { StaticId = value; }
+            get { return Path.Combine(Path.GetDirectoryName(GetType().Assembly.Location), "assets"); }
         }
 
+        public virtual Rect SpriteRect { get { return new Rect(0, 0, 54, 54); } }
+        public virtual Vector2 SpritePivot { get { return Vector2.zero; } }
 
-        public Sprite sprite;
+        private Sprite sp;
+        public Sprite sprite
+        {
+            get
+            {
+                if (sp == null)
+                {
+                    sp = LoadSprite(Name + ".png");
+                }
+                return sp;
+            }
+        }
+
+        protected Sprite LoadSprite(string file)
+        {
+            Texture2D texture = LoadTexture(Path.Combine(AssetDir, file));
+            Sprite s = Sprite.Create(texture, SpriteRect, SpritePivot, 100f);
+            Object.DontDestroyOnLoad(s);
+            return s;
+        }
 
         private PickableBlock pblock;
 
@@ -70,7 +90,7 @@ namespace CustomBlocks.Core
             PickB.name = this.Name + "_Pick";
             Object.DontDestroyOnLoad(PickB.gameObject);
             PickB.gameObject.hideFlags = HideFlags.HideAndDontSave;
-            PickB.blockSerializeIndex = CustomBlock.OriginalBlockCount + CustomId;
+            PickB.blockSerializeIndex = SerializeIndex;
             PickB.placeablePrefab = PlaceablePrefab;
 
             var default_sprite = PickB.transform.Find("ArtHolder/Sprite");
@@ -106,51 +126,13 @@ namespace CustomBlocks.Core
             placeable.ID = 0;
             if (placeable.gameObject.GetComponent<PlaceableMetadata>())
             {
-                placeable.gameObject.GetComponent<PlaceableMetadata>().blockSerializeIndex = CustomBlock.OriginalBlockCount + CustomId;
+                placeable.gameObject.GetComponent<PlaceableMetadata>().blockSerializeIndex = SerializeIndex;
             }
 
             Placeable.AllPlaceables.Remove(placeable);
 
             this.FixSprite(placeable.transform.Find("Sprite"));
             return placeable;
-        }
-
-        static public void AddBlock<T>() where T : CustomBlock, new()
-        {
-            var block = new T();
-            block.CustomId = Blocks.Count;
-            Blocks.Add(CustomBlock.OriginalBlockCount + Blocks.Count, block.PlaceablePrefab);
-        }
-
-
-        public static void InitBlocks()
-        {
-            if (Blocks.Count == 0)
-            {
-                var c = GameSettings.GetInstance().DefaultRuleset.Blocks.Length;
-                CustomBlock.OriginalBlockCount = c;
-
-                AddBlock<OneRoundWood>();
-                AddBlock<ReCoin>();
-                AddBlock<MultiStart>();
-                AddBlock<RCReceiver>();
-                AddBlock<RCTransmitter>();
-                AddBlock<FloatyCloud>();
-                AddBlock<PigFarmButton>();
-                AddBlock<PigDirt>();
-                AddBlock<ChickenRoll>();
-                AddBlock<Acid>();
-
-                Placeable.AllPlaceables = new List<Placeable> { };
-
-                System.Array.Resize(ref GameSettings.GetInstance().DefaultRuleset.Blocks, GameSettings.GetInstance().DefaultRuleset.Blocks.Length + CustomBlock.Blocks.Count);
-
-                foreach (Placeable block in Blocks.Values)
-                {
-                    GameSettings.GetInstance().DefaultRuleset.Blocks[c] = new GameRulePreset.BlockData(block);
-                    c += 1;
-                }
-            }
         }
 
         public virtual void OnPlace(Placeable placeable, int playerNumber, bool sendEvent, bool force = false)

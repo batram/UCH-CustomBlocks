@@ -1,5 +1,7 @@
 using BepInEx;
 using CustomBlocks.Backgrounds;
+using CustomBlocks.Blocks;
+using CustomBlocks.Core;
 using HarmonyLib;
 using UnityEngine;
 using System.Reflection;
@@ -50,6 +52,18 @@ namespace CustomBlocks
             {
                 //TODO: Enable Background and individual CustomBlocks via config
                 new Harmony("CustomBlocks").PatchAll();
+
+                // built-in blocks register through the same public API other mods use
+                CustomBlockRegistry.Register<OneRoundWood>();
+                CustomBlockRegistry.Register<ReCoin>();
+                CustomBlockRegistry.Register<MultiStart>();
+                CustomBlockRegistry.Register<RCReceiver>();
+                CustomBlockRegistry.Register<RCTransmitter>();
+                CustomBlockRegistry.Register<FloatyCloud>();
+                CustomBlockRegistry.Register<PigFarmButton>();
+                CustomBlockRegistry.Register<PigDirt>();
+                CustomBlockRegistry.Register<ChickenRoll>();
+                CustomBlockRegistry.Register<Acid>();
             }
 
             ToggleBackgroundKey = Config.Bind("INPUT", "ToggleBackgroundKey", KeyCode.G, "Keybinding: Toggle background mode for blocks");

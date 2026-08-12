@@ -12,29 +12,10 @@ namespace CustomBlocks.Blocks
         public override int BasedId { get { return 32; } }
         public override string BasePlaceableName { get { return "Glue"; } }
         public override string BasePickableBlockName { get { return "Glue_Pick"; } }
-        public override string Name { get { return GetType().Name; } }
-        public new static int StaticId { get; set; }
-        public override int CustomId
-        {
-            get { return StaticId; }
-            set { StaticId = value; }
-        }
 
-        protected Sprite sp;
-        new public Sprite sprite
-        {
-            get
-            {
-                if (sp == null)
-                {
-                    Texture2D texture = LoadTexture(Path.Combine(CustomBlock.ImageDir, this.Name + ".png"));
-                    sp = Sprite.Create(texture, new Rect(0, 0, 81, 60), new Vector2(0, 0), 100f);
-                    Object.DontDestroyOnLoad(sp);
-                }
-                return sp;
-            }
-        }
+        public override Rect SpriteRect { get { return new Rect(0, 0, 81, 60); } }
 
+        // note: indicator reuses the main sprite file
         protected Sprite ind_sp;
         public Sprite ind_sprite
         {
@@ -42,9 +23,7 @@ namespace CustomBlocks.Blocks
             {
                 if (ind_sp == null)
                 {
-                    Texture2D texture = LoadTexture(Path.Combine(CustomBlock.ImageDir, this.Name + ".png"));
-                    ind_sp = Sprite.Create(texture, new Rect(0, 0, 81, 60), new Vector2(0, 0), 100f);
-                    Object.DontDestroyOnLoad(ind_sp);
+                    ind_sp = LoadSprite(Name + ".png");
                 }
                 return ind_sp;
             }

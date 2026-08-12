@@ -18,10 +18,13 @@ namespace CustomBlocks.Patches
                     saveable.overrideName = saveable.placeable.gameObject.name;
                     CustomBlocksMod.EnableBackgroundBlock(saveable.placeable.gameObject);
                 }
-                if(saveable.placeable && saveable.blockID >= CustomBlocksMod.magicCustomBlockNumber)
+                else if (saveable.placeable && saveable.blockID >= CustomBlocksMod.magicCustomBlockNumber)
                 {
-                    saveable.blockID += Core.CustomBlock.OriginalBlockCount;
-                    saveable.blockID -= CustomBlocksMod.magicCustomBlockNumber;
+                    int serializeIndex;
+                    if (Core.CustomBlockRegistry.TryGetSerializeIndexForSaveId(saveable.blockID - CustomBlocksMod.magicCustomBlockNumber, out serializeIndex))
+                    {
+                        saveable.blockID = serializeIndex;
+                    }
                 }
             }
         }

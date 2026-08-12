@@ -26,9 +26,9 @@ namespace CustomBlocks.Core.Patches
                         GameObject.Destroy(child.gameObject);
                     }
 
-                    CustomBlock.InitBlocks();
+                    CustomBlockRegistry.InitBlocks();
 
-                    foreach (Placeable cblock in CustomBlock.Blocks.Values)
+                    foreach (Placeable cblock in CustomBlockRegistry.Prefabs)
                     {
                         cblock.GetComponent<CustomBlock>()?.AddToInventoryPage(inventoryPage);
                     }

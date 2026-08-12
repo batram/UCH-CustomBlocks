@@ -12,28 +12,9 @@ namespace CustomBlocks.Blocks
         public override int BasedId { get { return 4; } }
         public override string BasePlaceableName { get { return "05_Plank5"; } }
         public override string BasePickableBlockName { get { return "05_Plank5_Pick"; } }
-        public override string Name { get { return GetType().Name; } }
-        public new static int StaticId { get; set; }
-        public override int CustomId
-        {
-            get { return StaticId; }
-            set { StaticId = value; }
-        }
 
-        protected Sprite sp;
-        new public Sprite sprite
-        {
-            get
-            {
-                if (sp == null)
-                {
-                    //TODO: Get texture from prefab
-                    Texture2D texture = LoadTexture(Path.Combine(CustomBlock.ImageDir, this.Name + ".png"));
-                    sp = Sprite.Create(texture, new Rect(0, 0, 768, 232), new Vector2(0.5f, 0.5f), 100f);
-                }
-                return sp;
-            }
-        }
+        public override Rect SpriteRect { get { return new Rect(0, 0, 768, 232); } }
+        public override Vector2 SpritePivot { get { return new Vector2(0.5f, 0.5f); } }
 
         public HashSet<Character> CloudPlayers = new HashSet<Character>();
         public Vector3 CloudBasePosition;

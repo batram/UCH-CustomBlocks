@@ -24,6 +24,33 @@ Pressing `G` in Free Play place phase (build modus) toggles the Background Modus
 
 # Custom Blocks
 
+## Making your own blocks (other mods)
+
+Other BepInEx mods can add blocks by referencing `CustomBlocksMod.dll` and
+registering a `CustomBlock` subclass during their plugin's `Awake`:
+
+```csharp
+using CustomBlocks.Core;
+
+class MyBlock : CustomBlock
+{
+    // vanilla block to clone
+    public override int BasedId { get { return 0; } }
+    public override string BasePlaceableName { get { return "01_1x1 Box"; } }
+    public override string BasePickableBlockName { get { return "01_1x1 Box_Pick"; } }
+
+    // sprite is loaded from <your plugin dir>/assets/MyBlock.png
+    public override Rect SpriteRect { get { return new Rect(0, 0, 54, 54); } }
+}
+
+// in your BaseUnityPlugin.Awake:
+CustomBlockRegistry.Register<MyBlock>();
+```
+
+Block identity in saves comes from a stable id derived from the class name,
+so save files keep working regardless of which other block mods are installed
+or in which order they register.
+
 ## FloatyCloud
 A cloud that starts sinking when a player steps on it.
 If the cloud losses too much height, it start to go transparent and players can no longer stand on it.
