@@ -60,7 +60,6 @@ namespace CustomBlocks
                 CustomBlockRegistry.Register<RCReceiver>();
                 CustomBlockRegistry.Register<RCTransmitter>();
                 CustomBlockRegistry.Register<FloatyCloud>();
-                CustomBlockRegistry.Register<PigFarmButton>();
                 CustomBlockRegistry.Register<PigDirt>();
                 CustomBlockRegistry.Register<ChickenRoll>();
                 CustomBlockRegistry.Register<Acid>();
