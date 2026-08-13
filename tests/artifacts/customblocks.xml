@@ -1,0 +1,53 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<testsuites tests="42" failures="0" time="47,081">
+  <testsuite name="customblocks/inventory-book" tests="10" failures="0" time="13,458">
+    <testcase classname="customblocks/inventory-book" name="into free play.place phase reached" />
+    <testcase classname="customblocks/inventory-book" name="book structure.pages" />
+    <testcase classname="customblocks/inventory-book" name="page screenshots.book has pages" />
+    <testcase classname="customblocks/inventory-book" name="page screenshots.screenshot page 0" />
+    <testcase classname="customblocks/inventory-book" name="page screenshots.screenshot page 1" />
+    <testcase classname="customblocks/inventory-book" name="page screenshots.screenshot page 2" />
+    <testcase classname="customblocks/inventory-book" name="page screenshots.screenshot page 3" />
+    <testcase classname="customblocks/inventory-book" name="page screenshots.screenshot page 4" />
+    <testcase classname="customblocks/inventory-book" name="back to treehouse.in the treehouse" />
+    <testcase classname="customblocks/inventory-book" name="back to treehouse.no errors logged on any peer" />
+  </testsuite>
+  <testsuite name="customblocks/place-save-load" tests="18" failures="0" time="8,845">
+    <testcase classname="customblocks/place-save-load" name="into free play.place phase reached" />
+    <testcase classname="customblocks/place-save-load" name="place one of each custom block.placed OneRoundWood" />
+    <testcase classname="customblocks/place-save-load" name="place one of each custom block.placed ReCoin" />
+    <testcase classname="customblocks/place-save-load" name="place one of each custom block.placed MultiStart" />
+    <testcase classname="customblocks/place-save-load" name="place one of each custom block.placed RCReceiver" />
+    <testcase classname="customblocks/place-save-load" name="place one of each custom block.placed RCTransmitter" />
+    <testcase classname="customblocks/place-save-load" name="place one of each custom block.placed FloatyCloud" />
+    <testcase classname="customblocks/place-save-load" name="place one of each custom block.placed PigFarmButton" />
+    <testcase classname="customblocks/place-save-load" name="place one of each custom block.placed PigDirt" />
+    <testcase classname="customblocks/place-save-load" name="place one of each custom block.placed ChickenRoll" />
+    <testcase classname="customblocks/place-save-load" name="place one of each custom block.placed Acid" />
+    <testcase classname="customblocks/place-save-load" name="place one of each custom block.placed before save" />
+    <testcase classname="customblocks/place-save-load" name="snapshot.snapshot produced" />
+    <testcase classname="customblocks/place-save-load" name="snapshot.snapshot block ids" />
+    <testcase classname="customblocks/place-save-load" name="clear and reload.snapshot loaded" />
+    <testcase classname="customblocks/place-save-load" name="clear and reload.placed after load" />
+    <testcase classname="customblocks/place-save-load" name="back to treehouse.in the treehouse" />
+    <testcase classname="customblocks/place-save-load" name="back to treehouse.no errors logged on any peer" />
+  </testsuite>
+  <testsuite name="customblocks/registry" tests="5" failures="0" time="0,662">
+    <testcase classname="customblocks/registry" name="registry.registry" />
+    <testcase classname="customblocks/registry" name="prefab table.in the treehouse" />
+    <testcase classname="customblocks/registry" name="prefab table.prefab table extended past vanilla" />
+    <testcase classname="customblocks/registry" name="prefab table.placeable table" />
+    <testcase classname="customblocks/registry" name="prefab table.no errors logged on any peer" />
+  </testsuite>
+  <testsuite name="customblocks/rules-tablet" tests="9" failures="0" time="8,961">
+    <testcase classname="customblocks/rules-tablet" name="into free play.place phase reached" />
+    <testcase classname="customblocks/rules-tablet" name="rules screen.rules screen visible" />
+    <testcase classname="customblocks/rules-tablet" name="rules screen.tablet block list" />
+    <testcase classname="customblocks/rules-tablet" name="rules screen.rules screen screenshot" />
+    <testcase classname="customblocks/rules-tablet" name="block probability page.block list visible" />
+    <testcase classname="customblocks/rules-tablet" name="block probability page.block probability screenshot" />
+    <testcase classname="customblocks/rules-tablet" name="block probability page.custom blocks page screenshot" />
+    <testcase classname="customblocks/rules-tablet" name="back to treehouse.in the treehouse" />
+    <testcase classname="customblocks/rules-tablet" name="back to treehouse.no errors logged on any peer" />
+  </testsuite>
+</testsuites>

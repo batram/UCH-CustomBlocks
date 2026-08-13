@@ -1,0 +1,56 @@
+{
+  "blocks": [
+    {
+      "id": 0,
+      "serializeIndex": 104,
+      "type": "CustomBlocks.Blocks.OneRoundWood"
+    },
+    {
+      "id": 1,
+      "serializeIndex": 105,
+      "type": "CustomBlocks.Blocks.ReCoin"
+    },
+    {
+      "id": 2,
+      "serializeIndex": 106,
+      "type": "CustomBlocks.Blocks.MultiStart"
+    },
+    {
+      "id": 3,
+      "serializeIndex": 107,
+      "type": "CustomBlocks.Blocks.RCReceiver"
+    },
+    {
+      "id": 4,
+      "serializeIndex": 108,
+      "type": "CustomBlocks.Blocks.RCTransmitter"
+    },
+    {
+      "id": 5,
+      "serializeIndex": 109,
+      "type": "CustomBlocks.Blocks.FloatyCloud"
+    },
+    {
+      "id": 6,
+      "serializeIndex": 113,
+      "type": "PigFarm.PigFarmButton"
+    },
+    {
+      "id": 7,
+      "serializeIndex": 110,
+      "type": "CustomBlocks.Blocks.PigDirt"
+    },
+    {
+      "id": 8,
+      "serializeIndex": 111,
+      "type": "CustomBlocks.Blocks.ChickenRoll"
+    },
+    {
+      "id": 9,
+      "serializeIndex": 112,
+      "type": "CustomBlocks.Blocks.Acid"
+    }
+  ],
+  "count": 10,
+  "loaded": true
+}

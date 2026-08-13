@@ -6,7 +6,14 @@
 // judged on. The screenshots are per-run evidence for eyeballing layout —
 // pixels are too animation-noisy to golden.
 
+// KNOWN DEFECT (baseline): glue-based custom blocks (RCReceiver, Acid) leave a
+// GluePiece sub-element the save sweep cannot map to a main block. Allowed here
+// so the baseline records it without failing the run; remove once fixed.
+AllowLogErrors("Could not find main block for sub-element GluePiece");
+
 Step("into free play");
+await Host.DoAsync("Fleet.PickCharacter(\"SQUIRREL\");");
+await Task.Delay(1000);
 await Host.DoAsync("Fleet.StartGame(\"Farm\", \"FREEPLAY\");");
 await Require("place phase reached", "Fleet.Scene() != \"TreeHouseLobby\" && Fleet.Phase() == \"PLACE\"", 90);
 

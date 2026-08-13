@@ -1,0 +1,282 @@
+[
+  {
+    "name": "01_1x1 Box_Pick",
+    "serializeIndex": 0
+  },
+  {
+    "name": "02_Plank2_Pick",
+    "serializeIndex": 1
+  },
+  {
+    "name": "03_Plank3_Pick",
+    "serializeIndex": 2
+  },
+  {
+    "name": "04_Plank4_Pick",
+    "serializeIndex": 3
+  },
+  {
+    "name": "05_Plank5_Pick",
+    "serializeIndex": 4
+  },
+  {
+    "name": "06_Beam_Pick",
+    "serializeIndex": 5
+  },
+  {
+    "name": "07_Barrel_Pick",
+    "serializeIndex": 6
+  },
+  {
+    "name": "08_HayBale_Pick",
+    "serializeIndex": 7
+  },
+  {
+    "name": "Glue_Pick",
+    "serializeIndex": 32
+  },
+  {
+    "name": "Coin_Pick",
+    "serializeIndex": 30
+  },
+  {
+    "name": "Stopwatch_Pick",
+    "serializeIndex": 92
+  },
+  {
+    "name": "99_Bomb_Pick",
+    "serializeIndex": 28
+  },
+  {
+    "name": "99a_Bombmini_Pick",
+    "serializeIndex": 51
+  },
+  {
+    "name": "99a_Bombmega_Pick",
+    "serializeIndex": 52
+  },
+  {
+    "name": "Jetpack_Pick",
+    "serializeIndex": 93
+  },
+  {
+    "name": "JetpackDispenser_Pick",
+    "serializeIndex": 94
+  },
+  {
+    "name": "09_L Boards_Pick",
+    "serializeIndex": 8
+  },
+  {
+    "name": "10_Stairs_Pick",
+    "serializeIndex": 9
+  },
+  {
+    "name": "201_Scaffold_Pick",
+    "serializeIndex": 60
+  },
+  {
+    "name": "CrumbleBlockA_Pick",
+    "serializeIndex": 73
+  },
+  {
+    "name": "CrumbleBlockI_Pick",
+    "serializeIndex": 81
+  },
+  {
+    "name": "CrumbleBlockP_Pick",
+    "serializeIndex": 88
+  },
+  {
+    "name": "11_1x1 Spike Block_Pick",
+    "serializeIndex": 10
+  },
+  {
+    "name": "92_FlippingBlock_Pick",
+    "serializeIndex": 23
+  },
+  {
+    "name": "87_Tennis Ball Shooter_Pick",
+    "serializeIndex": 19
+  },
+  {
+    "name": "204_SwingingAxe_Pick",
+    "serializeIndex": 63
+  },
+  {
+    "name": "93_SpinningDeath_Pick",
+    "serializeIndex": 24
+  },
+  {
+    "name": "206_PressureTriggerSpikes_Pick",
+    "serializeIndex": 65
+  },
+  {
+    "name": "86_ArrowShooter_Pick",
+    "serializeIndex": 18
+  },
+  {
+    "name": "BoxingGlove_Pick",
+    "serializeIndex": 72
+  },
+  {
+    "name": "94_LinearSaw_Pick",
+    "serializeIndex": 25
+  },
+  {
+    "name": "90_Collapse2x1_Pick",
+    "serializeIndex": 21
+  },
+  {
+    "name": "207_PaperAirplaneShooter_Pick",
+    "serializeIndex": 66
+  },
+  {
+    "name": "AnimalCannon_Pick",
+    "serializeIndex": 98
+  },
+  {
+    "name": "HockeyShooter_Pick",
+    "serializeIndex": 33
+  },
+  {
+    "name": "BlackHole_Pick",
+    "serializeIndex": 29
+  },
+  {
+    "name": "50_PunchingPlant_Pick",
+    "serializeIndex": 17
+  },
+  {
+    "name": "Beehive_Pick",
+    "serializeIndex": 97
+  },
+  {
+    "name": "Flamethrower_Pick",
+    "serializeIndex": 99
+  },
+  {
+    "name": "40_Spring_Pick",
+    "serializeIndex": 14
+  },
+  {
+    "name": "95_Teleporter_Pick",
+    "serializeIndex": 26
+  },
+  {
+    "name": "21_PiecedBarbedWirex1_Pick",
+    "serializeIndex": 11
+  },
+  {
+    "name": "PieceIceX1_Pick",
+    "serializeIndex": 34
+  },
+  {
+    "name": "41_AutoDoor1x4_Pick",
+    "serializeIndex": 15
+  },
+  {
+    "name": "OneWayDoor_Pick",
+    "serializeIndex": 96
+  },
+  {
+    "name": "91_FanPlatformPick",
+    "serializeIndex": 22
+  },
+  {
+    "name": "22_PiecedBarbedWirex2_Pick",
+    "serializeIndex": 12
+  },
+  {
+    "name": "PieceIceX2_Pick",
+    "serializeIndex": 35
+  },
+  {
+    "name": "42_FireHydrant_Pick",
+    "serializeIndex": 16
+  },
+  {
+    "name": "89_Rotating_Tire_2x2_Pick",
+    "serializeIndex": 20
+  },
+  {
+    "name": "23_PiecedBarbedWirex3_Pick",
+    "serializeIndex": 13
+  },
+  {
+    "name": "PieceIceX3_Pick",
+    "serializeIndex": 36
+  },
+  {
+    "name": "96_HorizontalMove_Pick",
+    "serializeIndex": 27
+  },
+  {
+    "name": "FerrisWheel_Pick",
+    "serializeIndex": 31
+  },
+  {
+    "name": "TreadMill_Pick",
+    "serializeIndex": 37
+  },
+  {
+    "name": "200_UpBlower_Pick",
+    "serializeIndex": 59
+  },
+  {
+    "name": "202_SmoothRotate_Pick",
+    "serializeIndex": 61
+  },
+  {
+    "name": "203_LongDistanceMove_Pick",
+    "serializeIndex": 62
+  },
+  {
+    "name": "205_DiagonalMover_Pick",
+    "serializeIndex": 64
+  },
+  {
+    "name": "Thwomp_Pick",
+    "serializeIndex": 102
+  },
+  {
+    "name": "DancingMover_LShaped_Pick",
+    "serializeIndex": 103
+  },
+  {
+    "name": "OneRoundWood_Pick",
+    "serializeIndex": 104
+  },
+  {
+    "name": "ReCoin_Pick",
+    "serializeIndex": 105
+  },
+  {
+    "name": "RCReceiver_Pick",
+    "serializeIndex": 107
+  },
+  {
+    "name": "RCTransmitter_Pick",
+    "serializeIndex": 108
+  },
+  {
+    "name": "FloatyCloud_Pick",
+    "serializeIndex": 109
+  },
+  {
+    "name": "PigDirt_Pick",
+    "serializeIndex": 110
+  },
+  {
+    "name": "ChickenRoll_Pick",
+    "serializeIndex": 111
+  },
+  {
+    "name": "Acid_Pick",
+    "serializeIndex": 112
+  },
+  {
+    "name": "PigFarmButton_Pick",
+    "serializeIndex": 113
+  }
+]

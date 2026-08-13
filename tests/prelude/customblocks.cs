@@ -13,7 +13,7 @@ using UnityEngine;
 
 public static class FleetCB
 {
-    public const string Version = "1.0";
+    public const string Version = "1.5";
 
     static Type Registry()
     {
@@ -138,19 +138,68 @@ public static class FleetCB
 
     // -------------------------------------------------------- rules tablet
 
-    // The rules screen (block percentages / disable toggles) lives inactive
-    // under the treehouse LevelSelectController until the rule book opens it.
+    // The rules screen (block percentages / disable toggles) is a screen of
+    // the inventory book's tablet page. Open it the way the game does: book in
+    // screen mode on the tablet page, tablet switched to the rules screen.
+    // Requires the book, i.e. free play place phase.
     public static string ShowRulesScreen()
     {
-        TabletRulesScreen screen = null;
-        foreach (TabletRulesScreen s in Resources.FindObjectsOfTypeAll<TabletRulesScreen>())
+        InventoryBook book = Book();
+        book.Show(false);
+        book.ShowCursor(1);
+        book.TurnScreenOn(book.TabletPage);
+
+        Tablet tab = book.TabletPage.GetComponent<Tablet>();
+        if (tab == null) throw new Exception("FleetCB: tablet page has no Tablet component");
+        tab.OnShowTablet();
+        tab.GotoScreen(tab.rulesScreen);
+        return tab.rulesScreen.gameObject.name;
+    }
+
+    // Proof the screen is actually being presented, so the screenshot check
+    // cannot pass while photographing something else.
+    public static bool RulesScreenVisible()
+    {
+        InventoryBook book = Book();
+        Tablet tab = book.TabletPage.GetComponent<Tablet>();
+        return tab != null && tab.rulesScreen.gameObject.activeInHierarchy;
+    }
+
+    // One level deeper: the Block Probability page (per-block percentage and
+    // disable controls). Sub-pages of the rules screen are subdialogs; this is
+    // the same transition the "Block Probability" row triggers.
+    public static string ShowBlockProbability()
+    {
+        InventoryBook book = Book();
+        Tablet tab = book.TabletPage.GetComponent<Tablet>();
+        TabletRulesScreen rules = tab.rulesScreen;
+        rules.subdialogController.TransitionLeftTo(rules.blockSettingsSubdialog);
+        return rules.blockSettingsSubdialog.gameObject.name;
+    }
+
+    // The custom blocks are appended, so they live on the LAST page of the
+    // block grid. OnClickNextPage ignores its cursor argument.
+    public static string GotoLastBlockPage()
+    {
+        InventoryBook book = Book();
+        TabletRulesScreen rules = book.TabletPage.GetComponent<Tablet>().rulesScreen;
+        TabletBlockList list = rules.tabletBlockList;
+        int guard = 0;
+        while (list.CurrentPage < list.NumPages - 1 && guard < 32)
         {
-            if (s.gameObject.scene.IsValid()) { screen = s; break; }
+            list.OnClickNextPage(null);
+            guard++;
         }
-        if (screen == null) throw new Exception("FleetCB: no TabletRulesScreen object found");
-        screen.gameObject.SetActive(true);
-        screen.Initialize();
-        return screen.gameObject.name;
+        return (list.CurrentPage + 1) + "/" + list.NumPages;
+    }
+
+    public static bool BlockProbabilityVisible()
+    {
+        InventoryBook book = Book();
+        Tablet tab = book.TabletPage.GetComponent<Tablet>();
+        TabletRulesScreen rules = tab.rulesScreen;
+        return rules.subdialogController.currentSubdialog == rules.blockSettingsSubdialog
+            && rules.tabletBlockList.gameObject.activeInHierarchy;
     }
 
     // Structural record of the tablet block list: every entry's pickable name
@@ -199,15 +248,16 @@ public static class FleetCB
         return placed.name;
     }
 
-    // The custom blocks currently placed in the scene, sorted by name.
+    // Every custom block present in the scene, sorted, with its placed flag —
+    // "restored but never marked placed" must be distinguishable from "gone".
     public static string PlacedCustomJson()
     {
         List<string> names = new List<string>();
         foreach (PlaceableMetadata meta in UnityEngine.Object.FindObjectsOfType<PlaceableMetadata>())
         {
             Placeable p = meta.GetComponent<Placeable>();
-            if (p != null && p.placed && meta.blockSerializeIndex >= 102)
-                names.Add(p.name + ":" + meta.blockSerializeIndex);
+            if (p != null && meta.blockSerializeIndex >= 102)
+                names.Add(p.name + ":" + meta.blockSerializeIndex + ":" + (p.placed ? "placed" : "unplaced"));
         }
         names.Sort(StringComparer.Ordinal);
         List<string> quoted = new List<string>();
