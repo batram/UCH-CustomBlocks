@@ -8,7 +8,6 @@
 //
 // Ordering matters: blocks that transform or kill the character run last.
 
-AllowLogErrors("Could not find main block for sub-element GluePiece");
 // treehouse re-entry noise on a NetTest host: the custom level portals poke
 // destroyed network views while the lobby resets (see the fleet knowledge notes)
 AllowLogErrors("CustomLevelPortal.UpdateAppearanceForClient");
@@ -92,16 +91,12 @@ bool rollKill = await Until(Host, "Fleet.AnyCharacterDead()", 10);
 Check("chicken roll killed the character", rollKill);
 
 Step("Acid: kills on touch");
-// KNOWN DEFECT: Acid.OnPlace never sets the component's own 'placed' flag
-// (PigFarmButton does), so its trigger ignores everything; the glue-piece
-// gameplay colliders are also absent on a force-placed instance. INTENDED
-// behavior asserted anyway — this stays red until the block is fixed.
 await RequireOn("character alive before acid", Host, "!Fleet.AnyCharacterDead()", 20);
 await Host.EvalAsync("FleetCB.PlaceCustom(\"Acid\", -4f, -6f)");
 await Task.Delay(500);
 await Host.DoAsync("Fleet.PlaceCharacter(-4f, -5.9f);");
 bool acidKill = await Until(Host, "Fleet.AnyCharacterDead()", 10);
-Check("acid killed the character [KNOWN DEFECT]", acidKill);
+Check("acid killed the character", acidKill);
 await RequireOn("character alive again", Host, "!Fleet.AnyCharacterDead()", 20);
 
 Step("ReCoin: collectable coin");

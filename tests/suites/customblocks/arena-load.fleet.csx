@@ -9,7 +9,6 @@
 // Re-capture the fixture only for a deliberate, understood format change:
 // place-save-load exports each run's snapshot as artifacts/customblocks/snapshot.xml.
 
-AllowLogErrors("Could not find main block for sub-element GluePiece");
 // treehouse re-entry noise on a NetTest host: the custom level portals poke
 // destroyed network views while the lobby resets (see the fleet knowledge notes)
 AllowLogErrors("CustomLevelPortal.UpdateAppearanceForClient");

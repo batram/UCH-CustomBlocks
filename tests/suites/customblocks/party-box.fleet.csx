@@ -7,7 +7,6 @@
 // unchecked), so simply reaching the place phase with the log gate armed is
 // half the value of this scenario.
 
-AllowLogErrors("Could not find main block for sub-element GluePiece");
 // treehouse re-entry noise on a NetTest host: the custom level portals poke
 // destroyed network views while the lobby resets (see the fleet knowledge notes)
 AllowLogErrors("CustomLevelPortal.UpdateAppearanceForClient");

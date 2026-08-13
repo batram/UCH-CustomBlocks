@@ -88,6 +88,27 @@ namespace CustomBlocks.Blocks
 
         public override void OnPlace(Placeable placeable, int playerNumber, bool sendEvent, bool force = false)
         {
+            base.OnPlace(placeable, playerNumber, sendEvent, force);
+            this.placed = true;
+
+            // the glue colliders live on the GluePiece child, so trigger
+            // callbacks never reach this component without its own trigger
+            if (GetComponent<BoxCollider2D>() == null)
+            {
+                var glue_spr = placeable.transform.Find("GluePiece/Sprite");
+                BoxCollider2D trigger = gameObject.AddComponent<BoxCollider2D>();
+                trigger.isTrigger = true;
+                if (glue_spr != null)
+                {
+                    SpriteRenderer sr = glue_spr.GetComponent<SpriteRenderer>();
+                    trigger.offset = transform.InverseTransformPoint(sr.bounds.center);
+                    trigger.size = sr.bounds.size;
+                }
+                else
+                {
+                    trigger.size = new Vector2(1f, 1f);
+                }
+            }
         }
 
         public override void OnDestroy()

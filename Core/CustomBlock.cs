@@ -116,6 +116,12 @@ namespace CustomBlocks.Core
             Object.DontDestroyOnLoad(placeable);
             Object.DontDestroyOnLoad(placeable.gameObject);
             placeable.gameObject.hideFlags = HideFlags.HideAndDontSave;
+            // hideFlags do not propagate: sub-element placeables (e.g. GluePiece)
+            // would still be swept up by FindObjectsOfType during saves
+            foreach (Transform child in placeable.GetComponentsInChildren<Transform>(true))
+            {
+                child.gameObject.hideFlags = HideFlags.HideAndDontSave;
+            }
             placeable.gameObject.transform.position = new Vector3(2000, 2000, 100);
 
             placeable.name = this.Name;

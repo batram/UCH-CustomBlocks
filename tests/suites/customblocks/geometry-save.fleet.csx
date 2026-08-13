@@ -9,7 +9,6 @@
 // MemorizeInitialLevelPlaceables postfix empties the initial-piece list the
 // game's moved-geometry save records are built from.
 
-AllowLogErrors("Could not find main block for sub-element GluePiece");
 // treehouse re-entry noise on a NetTest host: the custom level portals poke
 // destroyed network views while the lobby resets (see the fleet knowledge notes)
 AllowLogErrors("CustomLevelPortal.UpdateAppearanceForClient");

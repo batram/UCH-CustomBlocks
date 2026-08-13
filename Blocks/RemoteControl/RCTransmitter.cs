@@ -110,6 +110,8 @@ namespace CustomBlocks.Blocks
 
         public override void OnPlace(Placeable __instance, int playerNumber, bool sendEvent, bool force = false)
         {
+            base.OnPlace(__instance, playerNumber, sendEvent, force);
+            this.placed = true;
             var indi = this.transform.Find("SpriteHolder/Offset/Glove/Indicator")?.GetComponent<SpriteRenderer>();
             if (indi)
             {

@@ -8,9 +8,6 @@
 // the other peer instantiates from that index. If custom-block indices ever
 // disagree between peers, this is the scenario that catches it.
 
-// KNOWN DEFECT (baseline): glue-based custom blocks leave a GluePiece
-// sub-element the save sweep cannot map; surfaces on scene changes.
-AllowLogErrors("Could not find main block for sub-element GluePiece");
 // treehouse re-entry noise on a NetTest host: the custom level portals poke
 // destroyed network views while the lobby resets (see the fleet knowledge notes)
 AllowLogErrors("CustomLevelPortal.UpdateAppearanceForClient");

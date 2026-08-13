@@ -6,10 +6,6 @@
 // judged on. The screenshots are per-run evidence for eyeballing layout —
 // pixels are too animation-noisy to golden.
 
-// KNOWN DEFECT (baseline): glue-based custom blocks (RCReceiver, Acid) leave a
-// GluePiece sub-element the save sweep cannot map to a main block. Allowed here
-// so the baseline records it without failing the run; remove once fixed.
-AllowLogErrors("Could not find main block for sub-element GluePiece");
 // treehouse re-entry noise on a NetTest host: the custom level portals poke
 // destroyed network views while the lobby resets (see the fleet knowledge notes)
 AllowLogErrors("CustomLevelPortal.UpdateAppearanceForClient");

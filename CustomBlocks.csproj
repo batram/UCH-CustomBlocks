@@ -18,6 +18,12 @@
   </PropertyGroup>
   
   <ItemGroup>
+    <!-- the test prelude is Mono.CSharp source injected in-game; it references
+         harness types (Fleet) that do not exist at mod build time -->
+    <Compile Remove="tests\**\*.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Krafs.Publicizer" Version="1.0.1" />
     <Reference Include="BepInEx">
       <HintPath>$(UCHfolder)\BepInEx\core\BepInEx.dll</HintPath>

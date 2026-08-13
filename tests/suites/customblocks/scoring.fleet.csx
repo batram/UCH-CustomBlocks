@@ -7,7 +7,6 @@
 // one genuine suicide point through the real message loop and asserts the
 // vanilla intent. If it fails, the corruption is real and now pinned.
 
-AllowLogErrors("Could not find main block for sub-element GluePiece");
 // treehouse re-entry noise on a NetTest host: the custom level portals poke
 // destroyed network views while the lobby resets (see the fleet knowledge notes)
 AllowLogErrors("CustomLevelPortal.UpdateAppearanceForClient");

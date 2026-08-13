@@ -147,6 +147,8 @@ namespace CustomBlocks.Blocks
         public override void OnPlace(Placeable placeable, int playerNumber, bool sendEvent, bool force = false)
         {
             Debug.Log("RCR Place " + placeable);
+            base.OnPlace(placeable, playerNumber, sendEvent, force);
+            this.placed = true;
             this.Indicator_spr = placeable.transform.Find("Indicator")?.GetComponent<SpriteRenderer>();
             if (Indicator_spr)
             {

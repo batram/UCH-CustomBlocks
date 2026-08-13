@@ -2,7 +2,6 @@
 // #peers    1
 // #describe Background mode: real pick path applies it, layer persists through save/load, custom+background combo recorded.
 
-AllowLogErrors("Could not find main block for sub-element GluePiece");
 // treehouse re-entry noise on a NetTest host: the custom level portals poke
 // destroyed network views while the lobby resets (see the fleet knowledge notes)
 AllowLogErrors("CustomLevelPortal.UpdateAppearanceForClient");
