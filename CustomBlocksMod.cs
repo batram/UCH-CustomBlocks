@@ -70,6 +70,24 @@ namespace CustomBlocks
             HighlightBlockKey = Config.Bind("INPUT", "HighlightBlockKey", KeyCode.H, "Keybinding: Highlight blocks on current layer");
         }
 
+        // Unity copies hideFlags to Instantiate clones, so every instance made
+        // from the mod's hidden prefabs is born invisible to FindObjectsOfType
+        // (save sweeps, ClearLevel, the metadata census). Rendering and physics
+        // don't care, which is why it looks fine on screen. Clear the flags on
+        // anything that becomes a real scene instance.
+        public static void UnhideInstance(GameObject go)
+        {
+            if (go == null || go.hideFlags == HideFlags.None)
+            {
+                return;
+            }
+            go.hideFlags = HideFlags.None;
+            foreach (Transform child in go.GetComponentsInChildren<Transform>(true))
+            {
+                child.gameObject.hideFlags = HideFlags.None;
+            }
+        }
+
         public static bool IsBackgroundBlock(GameObject go)
         {
             var meta = go.GetComponent<PlaceableMetadata>();

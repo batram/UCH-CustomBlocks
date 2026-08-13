@@ -13,7 +13,7 @@ using UnityEngine;
 
 public static class FleetCB
 {
-    public const string Version = "1.22";
+    public const string Version = "1.24";
 
     static Type Registry()
     {
@@ -313,7 +313,12 @@ public static class FleetCB
             if (p != null && !p.placed && meta.blockSerializeIndex >= 102 && p.name.StartsWith(blockName))
             {
                 p.transform.position = new Vector3(x, y, 0f);
-                p.Place(LocalCursor().networkNumber, true, true);
+                PiecePlacementCursor cursor = LocalCursor();
+                p.Place(cursor.networkNumber, true, true);
+                // placing out-of-band leaves cursor.Piece stale; the next
+                // pick's SetPiece(destroyPrevious:true) would DESTROY the
+                // block we just placed
+                if (cursor.Piece == p) cursor.SetPiece(null, false, true);
                 return p.name;
             }
         }
@@ -454,6 +459,20 @@ public static class FleetCB
         Type t = Type.GetType(fullName + ", CustomBlocksMod");
         if (t == null) throw new Exception("FleetCB: " + fullName + " unavailable (mod not loaded?)");
         return t;
+    }
+
+    // Make an already-placed block a background block, the way the pick patch
+    // does (component + layer). For blocks that cannot go through the real
+    // pick path — free play allows each player only ONE cursor-placed block
+    // per phase; a second real pick networks a PieceDestroyed for the first.
+    public static bool MakeBackground(string namePrefix, string layer)
+    {
+        Placeable p = PlacedInstance(namePrefix);
+        object mbi = ModType("CustomBlocks.CustomBlocksMod")
+            .GetMethod("EnableBackgroundBlock")
+            .Invoke(null, new object[] { p.gameObject });
+        mbi.GetType().GetField("layer").SetValue(mbi, layer);
+        return true;
     }
 
     public static bool SetBackgroundMode(bool on)

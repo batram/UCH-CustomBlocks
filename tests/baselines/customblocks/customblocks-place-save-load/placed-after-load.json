@@ -1,12 +1,21 @@
 [
   "Acid(Clone):112:unplaced",
+  "Acid(Clone):112:unplaced",
+  "ChickenRoll(Clone):111:placed",
   "ChickenRoll(Clone):111:unplaced",
+  "FloatyCloud(Clone):109:placed",
   "FloatyCloud(Clone):109:unplaced",
   "MultiStart(Clone):106:unplaced",
+  "OneRoundWood(Clone):104:placed",
   "OneRoundWood(Clone):104:unplaced",
+  "PigDirt(Clone):110:placed",
   "PigDirt(Clone):110:unplaced",
+  "PigFarmButton(Clone):113:placed",
   "PigFarmButton(Clone):113:unplaced",
   "RCReceiver(Clone):107:unplaced",
+  "RCReceiver(Clone):107:unplaced",
+  "RCTransmitter(Clone):108:placed",
   "RCTransmitter(Clone):108:unplaced",
+  "ReCoin(Clone):105:placed",
   "ReCoin(Clone):105:unplaced"
 ]

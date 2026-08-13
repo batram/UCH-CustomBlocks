@@ -12,7 +12,14 @@ namespace CustomBlocks.Core.Patches
     {
         static void Postfix(Placeable __instance, int playerNumber, bool sendEvent, bool force = false)
         {
-            __instance.gameObject.GetComponent<CustomBlock>()?.OnPlace(__instance, playerNumber, sendEvent, force);
+            CustomBlock cb = __instance.gameObject.GetComponent<CustomBlock>();
+            if (cb != null)
+            {
+                // clones inherit the prefab's HideAndDontSave; a placed block
+                // must be visible to the save sweeps
+                CustomBlocksMod.UnhideInstance(__instance.gameObject);
+                cb.OnPlace(__instance, playerNumber, sendEvent, force);
+            }
         }
     }
 

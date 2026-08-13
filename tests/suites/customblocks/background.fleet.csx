@@ -38,13 +38,16 @@ await Task.Delay(500);
 await GoldenOn("background vanilla block", Host, "FleetCB.BackgroundJson()");
 
 Step("custom block in background mode");
-// KNOWN DEFECT (review #5): a custom block in background mode saves
-// 9000 + session slot, not its stable id — the golden records today's raw ids.
-await Host.EvalAsync("FleetCB.PickFromBook(\"OneRoundWood\")");
+// The combo block is force-placed: free play allows each player only ONE
+// cursor-placed block per phase — a second real pick networks a
+// PieceDestroyed for the box placed above (verified with a Disable/Destroy
+// hook: FreePlayControl -> PieceDestroyed -> DestroySelf). The real pick
+// path is already covered by the vanilla box; this asserts the id math.
+await Host.DoAsync("FleetCB.SetBackgroundMode(false);");
+await Host.EvalAsync("FleetCB.PlaceCustom(\"OneRoundWood\", 3f, 6f)");
+await Host.DoAsync("FleetCB.MakeBackground(\"OneRoundWood\", \"Background 1\");");
 await RequireOn("custom block became background", Host,
     "FleetCB.BackgroundJson().Contains(\"OneRoundWood\")", 15);
-await Host.DoAsync("FleetCB.PlacePicked(\"OneRoundWood\", 3f, 6f);");
-await Host.DoAsync("FleetCB.SetBackgroundMode(false);");
 await Task.Delay(500);
 await SaveScreenshot(Host, "customblocks/background-placed.png");
 
