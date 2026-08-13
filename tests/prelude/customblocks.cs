@@ -13,7 +13,7 @@ using UnityEngine;
 
 public static class FleetCB
 {
-    public const string Version = "1.8";
+    public const string Version = "1.13";
 
     static Type Registry()
     {
@@ -97,6 +97,17 @@ public static class FleetCB
             pages.Add("{\"index\":" + i + ",\"name\":" + Q(page.name) + ",\"pickables\":" + Arr(picks) + "}");
         }
         return Arr(pages);
+    }
+
+    // Freeplay parks the local character at (-1000,-1000) while in cursor
+    // mode. Touch tests need the character in the world: same event the R key
+    // sends from the cursor side.
+    public static void SwitchToPlay()
+    {
+        PiecePlacementCursor cursor = LocalCursor();
+        GameEvent.GameEventManager.SendEvent(
+            new GameEvent.FreePlayPlayerSwitchEvent(cursor.networkNumber, GameControl.GamePhase.PLAY));
+        cursor.CallCmdSwitchFreeMode();
     }
 
     // Free play spawns players as characters; the book only shows in cursor
@@ -370,6 +381,218 @@ public static class FleetCB
             }
         }
         throw new Exception("FleetCB: no custom block named " + blockName);
+    }
+
+    // ------------------------------------------------------------ background
+
+    // Reflection like the registry: this file must keep compiling in the REPL
+    // when the mod is NOT loaded (vanilla-profile runs).
+    static Type ModType(string fullName)
+    {
+        Type t = Type.GetType(fullName + ", CustomBlocksMod");
+        if (t == null) throw new Exception("FleetCB: " + fullName + " unavailable (mod not loaded?)");
+        return t;
+    }
+
+    public static bool SetBackgroundMode(bool on)
+    {
+        System.Reflection.FieldInfo f = ModType("CustomBlocks.CustomBlocksMod").GetField("enableBackgroundMode");
+        f.SetValue(null, on);
+        return (bool)f.GetValue(null);
+    }
+
+    // Every background block in the scene: cleaned name, layer, alpha, and the
+    // (magic-offset) serialize index its metadata carries.
+    public static string BackgroundJson()
+    {
+        Type bbType = ModType("CustomBlocks.Backgrounds.BackgroundBlock");
+        string nameTag = (string)bbType.GetField("nameTag").GetValue(null);
+
+        List<string> rows = new List<string>();
+        foreach (UnityEngine.Object o in UnityEngine.Object.FindObjectsOfType(bbType))
+        {
+            MonoBehaviour bb = (MonoBehaviour)o;
+            string clean = bb.gameObject.name.Replace(nameTag, "");
+            PlaceableMetadata meta = bb.GetComponent<PlaceableMetadata>();
+            rows.Add("{\"name\":" + Q(clean)
+                + ",\"layer\":" + Q((string)bbType.GetField("layer").GetValue(bb))
+                + ",\"alpha\":" + bbType.GetField("alpha").GetValue(bb)
+                + ",\"serializeIndex\":" + (meta == null ? -1 : meta.blockSerializeIndex) + "}");
+        }
+        rows.Sort(StringComparer.Ordinal);
+        return Arr(rows);
+    }
+
+    // ------------------------------------------------------- behavior probes
+
+    static Placeable PlacedInstance(string namePrefix)
+    {
+        foreach (PlaceableMetadata meta in UnityEngine.Object.FindObjectsOfType<PlaceableMetadata>())
+        {
+            Placeable p = meta.GetComponent<Placeable>();
+            if (p != null && p.placed && p.name.StartsWith(namePrefix)) return p;
+        }
+        throw new Exception("FleetCB: no placed instance named " + namePrefix);
+    }
+
+    public static string BlockPos(string namePrefix)
+    {
+        Vector3 pos = PlacedInstance(namePrefix).transform.position;
+        return pos.x + ";" + pos.y;
+    }
+
+    public static float BlockY(string namePrefix)
+    {
+        return PlacedInstance(namePrefix).transform.position.y;
+    }
+
+    public static bool HasCircleCollider(string namePrefix)
+    {
+        return PlacedInstance(namePrefix).GetComponentInChildren<CircleCollider2D>() != null;
+    }
+
+    public static string LocalAnimal()
+    {
+        Character c = Fleet.LocalCharacter();
+        return c == null ? "none" : c.CharacterSprite.ToString();
+    }
+
+    public static int LocalFliesCount()
+    {
+        Character c = Fleet.LocalCharacter();
+        if (c == null) return -1;
+        var flies = (System.Collections.ICollection)typeof(Character)
+            .GetField("spawnedFlies", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public)
+            .GetValue(c);
+        return flies == null ? -1 : flies.Count;
+    }
+
+    public static bool ReceiverLinked()
+    {
+        foreach (Placeable p in UnityEngine.Object.FindObjectsOfType<Placeable>())
+        {
+            object rc = p.GetComponent("RCReceiver");
+            if (rc != null && p.placed)
+            {
+                object linked = rc.GetType().GetField("ConnectedTransmitter").GetValue(rc);
+                return linked != null;
+            }
+        }
+        return false;
+    }
+
+    // How many of the sampled spawn positions land near (x,y) — MultiStart's
+    // whole purpose is to add its own transform to the spawn candidates.
+    public static int SpawnsNear(float x, float y, int samples, float radius)
+    {
+        Level level = UnityEngine.Object.FindObjectOfType<Level>();
+        if (level == null) throw new Exception("FleetCB: no Level in scene");
+        int near = 0;
+        for (int i = 0; i < samples; i++)
+        {
+            Vector3 pos = level.GetSpawnPosition((float)i / samples);
+            if (Vector2.Distance(new Vector2(pos.x, pos.y), new Vector2(x, y)) <= radius) near++;
+        }
+        return near;
+    }
+
+    // -------------------------------------------------------------- scoring
+
+    // Feed a genuine suicide point through the real message loop and report
+    // what the ScoreKeeper recorded. Vanilla intent: one suicide PointBlock.
+    public static string AwardSuicideAndReport(int playerNumber)
+    {
+        ScoreKeeper keeper = ScoreKeeper.Instance;
+        if (keeper == null) throw new Exception("FleetCB: no ScoreKeeper (not in a scored mode?)");
+        keeper.AwardPoint(new PointBlock(PointBlock.pointBlockType.suicide, playerNumber), false);
+        return "sent";
+    }
+
+    public static string ScoreBlocksJson()
+    {
+        ScoreKeeper keeper = ScoreKeeper.Instance;
+        if (keeper == null) throw new Exception("FleetCB: no ScoreKeeper");
+        List<string> rows = new List<string>();
+        foreach (System.Reflection.FieldInfo f in typeof(ScoreKeeper).GetFields(
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance))
+        {
+            var list = f.GetValue(keeper) as System.Collections.IEnumerable;
+            if (list == null || !f.FieldType.IsGenericType) continue;
+            foreach (object o in list)
+            {
+                PointBlock pb = o as PointBlock;
+                if (pb == null) break;
+                rows.Add("{\"field\":" + Q(f.Name) + ",\"player\":" + pb.playerNumber
+                    + ",\"type\":" + Q(pb.type.ToString())
+                    + ",\"suicideValue\":" + pb.suicideValue
+                    + ",\"pointValue\":" + pb.pointValue + "}");
+            }
+        }
+        rows.Sort(StringComparer.Ordinal);
+        return Arr(rows);
+    }
+
+    // ---------------------------------------------------------------- party
+
+    // Sum of party weights over the VANILLA blocks — 0 means the box can only
+    // draw custom blocks.
+    public static int VanillaPartyWeightSum()
+    {
+        PartyBox box = UnityEngine.Object.FindObjectOfType<PartyBox>();
+        if (box == null) throw new Exception("FleetCB: no PartyBox in scene");
+        object weights = box.GetType()
+            .GetField("baseBlockWeights", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+            .GetValue(box);
+        System.Reflection.MethodInfo query = weights.GetType().GetMethod("GetWeightForPlaceable");
+
+        Type reg = Registry();
+        int vanillaCount = (int)reg.GetProperty("OriginalBlockCount").GetValue(null, null);
+        GameObject[] prefabs = PlaceableMetadataList.Instance.allBlockPrefabs;
+        int sum = 0;
+        for (int i = 0; i < vanillaCount && i < prefabs.Length; i++)
+        {
+            Placeable p = prefabs[i].GetComponent<Placeable>();
+            if (p != null && !p.isSetPiece) sum += (int)query.Invoke(weights, new object[] { p });
+        }
+        return sum;
+    }
+
+    public static int ZeroAllVanillaFrequencies()
+    {
+        Type reg = Registry();
+        int vanillaCount = (int)reg.GetProperty("OriginalBlockCount").GetValue(null, null);
+        GameSettings gs = GameSettings.GetInstance();
+        int changed = 0;
+        for (int i = 0; i < vanillaCount; i++)
+        {
+            gs.SetBlockFrequency(i, 0);
+            GameRulePreset.BlockData data = gs.DefaultRuleset.Blocks[i];
+            data.Frequency = 0;
+            gs.DefaultRuleset.Blocks[i] = data;
+            changed++;
+        }
+        return changed;
+    }
+
+    // Undo ZeroAllVanillaFrequencies: default frequencies derive from each
+    // block's BaseRarity, which is what the BlockData constructor computes.
+    public static int RestoreVanillaFrequencies()
+    {
+        Type reg = Registry();
+        int vanillaCount = (int)reg.GetProperty("OriginalBlockCount").GetValue(null, null);
+        GameSettings gs = GameSettings.GetInstance();
+        GameObject[] prefabs = PlaceableMetadataList.Instance.allBlockPrefabs;
+        int changed = 0;
+        for (int i = 0; i < vanillaCount && i < prefabs.Length; i++)
+        {
+            Placeable p = prefabs[i].GetComponent<Placeable>();
+            if (p == null) continue;
+            GameRulePreset.BlockData data = new GameRulePreset.BlockData(p);
+            gs.DefaultRuleset.Blocks[i] = data;
+            gs.SetBlockFrequency(i, data.Frequency);
+            changed++;
+        }
+        return changed;
     }
 
     static QuickSaver Saver()
