@@ -181,8 +181,13 @@ namespace CustomBlocks.Core
             GameRulePreset ruleset = GameSettings.GetInstance().DefaultRuleset;
             OriginalBlockCount = ruleset.Blocks.Length;
 
-            // slots are assigned in registration order, but identity in saves
-            // comes from the stable CustomId, so order shifts are harmless
+            // slots follow CustomId order, not registration order, so peers
+            // running the same mod set agree on every serialize index no
+            // matter which plugin loaded first (review finding #13). Sorting
+            // the definitions list itself keeps every downstream iteration
+            // (Prefabs, tablet, book) in the same order as the slot map.
+            definitions.Sort((a, b) => GetCustomId(a.GetType()).CompareTo(GetCustomId(b.GetType())));
+
             int slot = OriginalBlockCount;
             foreach (CustomBlock definition in definitions)
             {

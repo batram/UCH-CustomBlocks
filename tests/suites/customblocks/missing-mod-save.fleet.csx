@@ -58,8 +58,8 @@ await Task.Delay(2000);
 await GoldenOn("restored without missing mod", Host, "FleetCB.PlacedCustomJson()");
 string restored = await Host.EvalAsync("FleetCB.PlacedCustomJson()");
 Check("OneRoundWood restored", restored.Contains("OneRoundWood"), "");
-Check("missing-mod block did not get re-placed",
-    !restored.Contains("PigFarmButton(Clone):113:placed"), "");
+bool missingPlaced = await Host.EvalBoolAsync("FleetCB.IsPlacedCustom(\"PigFarmButton(Clone)\")");
+Check("missing-mod block did not get re-placed", !missingPlaced, "");
 
 Step("back to treehouse");
 await Host.DoAsync("Fleet.ReturnToTreehouse();");

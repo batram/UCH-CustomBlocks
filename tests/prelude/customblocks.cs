@@ -13,7 +13,7 @@ using UnityEngine;
 
 public static class FleetCB
 {
-    public const string Version = "1.25";
+    public const string Version = "1.26";
 
     static Type Registry()
     {
@@ -274,6 +274,18 @@ public static class FleetCB
         List<string> quoted = new List<string>();
         foreach (string n in names) quoted.Add(Q(n));
         return Arr(quoted);
+    }
+
+    // Index-agnostic placed probe: serialize slots are deterministic but not
+    // stable across mod-set changes, so scenarios must not hardcode them.
+    public static bool IsPlacedCustom(string namePrefix)
+    {
+        foreach (PlaceableMetadata meta in UnityEngine.Object.FindObjectsOfType<PlaceableMetadata>())
+        {
+            Placeable p = meta.GetComponent<Placeable>();
+            if (p != null && p.placed && p.name.StartsWith(namePrefix)) return true;
+        }
+        return false;
     }
 
     // ------------------------------------------------- book pick (real path)

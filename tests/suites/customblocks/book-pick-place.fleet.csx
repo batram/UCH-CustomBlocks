@@ -53,9 +53,9 @@ Step("place it — the real cursor drop");
 string dropped = await Host.EvalAsync("FleetCB.CursorDropAt(2f, 5f)");
 Check("drop accepted", !dropped.Contains("cannot-place"), dropped);
 await RequireOn("placed on host", Host,
-    "FleetCB.PlacedCustomJson().Contains(\"PigFarmButton(Clone):113:placed\")", 15);
+    "FleetCB.IsPlacedCustom(\"PigFarmButton(Clone)\")", 15);
 bool placedOnClient = await Until(Clients[0],
-    "FleetCB.PlacedCustomJson().Contains(\":113:placed\")", 15);
+    "FleetCB.IsPlacedCustom(\"PigFarmButton(Clone)\")", 15);
 Check("placed on client via the network", placedOnClient);
 
 await Agree("custom blocks agree on both peers", "FleetCB.PlacedCustomJson()");

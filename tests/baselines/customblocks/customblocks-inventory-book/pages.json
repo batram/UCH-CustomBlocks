@@ -118,10 +118,10 @@
       "RCReceiver_Pick",
       "RCTransmitter_Pick",
       "FloatyCloud_Pick",
+      "PigFarmButton_Pick",
       "PigDirt_Pick",
       "ChickenRoll_Pick",
-      "Acid_Pick",
-      "PigFarmButton_Pick"
+      "Acid_Pick"
     ]
   }
 ]

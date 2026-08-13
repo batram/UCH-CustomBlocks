@@ -24,6 +24,10 @@
     "weight": 2000
   },
   {
+    "name": "PigFarmButton",
+    "weight": 2000
+  },
+  {
     "name": "PigDirt",
     "weight": 2000
   },
@@ -33,10 +37,6 @@
   },
   {
     "name": "Acid",
-    "weight": 2000
-  },
-  {
-    "name": "PigFarmButton",
     "weight": 2000
   }
 ]

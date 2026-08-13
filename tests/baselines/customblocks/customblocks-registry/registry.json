@@ -32,22 +32,22 @@
     },
     {
       "id": 6,
-      "serializeIndex": 113,
+      "serializeIndex": 110,
       "type": "PigFarm.PigFarmButton"
     },
     {
       "id": 7,
-      "serializeIndex": 110,
+      "serializeIndex": 111,
       "type": "CustomBlocks.Blocks.PigDirt"
     },
     {
       "id": 8,
-      "serializeIndex": 111,
+      "serializeIndex": 112,
       "type": "CustomBlocks.Blocks.ChickenRoll"
     },
     {
       "id": 9,
-      "serializeIndex": 112,
+      "serializeIndex": 113,
       "type": "CustomBlocks.Blocks.Acid"
     }
   ],
