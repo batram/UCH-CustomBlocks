@@ -30,11 +30,11 @@ namespace CustomBlocks.Core.Patches
 
                     if (cb)
                     {
-                        var basePick = __instance.tabletBlocksByIndex[cb.BasedId];
+                        var basePick = BaseTabletBlock(__instance, cb);
 
                         if (basePick)
                         {
-                            var clone = GameObject.Instantiate(__instance.tabletBlocksByIndex[cb.BasedId]);
+                            var clone = GameObject.Instantiate(basePick);
                             GameObject.DontDestroyOnLoad(clone);
                             clone.pickableBlockPrefab = cb.PickableBlock;
                             cb.FixSprite(clone.gameObject.transform.Find("SpriteBox/PickableBlockPivot/" + cb.BasePickableBlockName + "(Clone)/ArtHolder/Sprite"));
@@ -64,7 +64,8 @@ namespace CustomBlocks.Core.Patches
                     tabletBlock.disabled = isDisabled;
 
                     int blockSerializeIndex = tabletBlock.pickableBlockPrefab.blockSerializeIndex;
-                    if (blockSerializeIndex >= 102)
+                    if (blockSerializeIndex >= CustomBlockRegistry.OriginalBlockCount
+                        && blockSerializeIndex < __instance.tabletBlocksByIndex.Length)
                     {
                         __instance.tabletBlocksByIndex[blockSerializeIndex] = tabletBlock;
                     }
@@ -72,6 +73,29 @@ namespace CustomBlocks.Core.Patches
             }
 
             __instance.ReorderList();
+        }
+
+        // Resolve the vanilla tablet entry to clone by the base block's NAME;
+        // the BasedId literal is only a bounds-checked fallback (review #6).
+        static TabletBlock BaseTabletBlock(TabletBlockList list, CustomBlock cb)
+        {
+            GameObject[] prefabs = PlaceableMetadataList.Instance ? PlaceableMetadataList.Instance.allBlockPrefabs : null;
+            if (prefabs != null && !string.IsNullOrEmpty(cb.BasePlaceableName))
+            {
+                int limit = Math.Min(CustomBlockRegistry.OriginalBlockCount, Math.Min(prefabs.Length, list.tabletBlocksByIndex.Length));
+                for (int i = 0; i < limit; i++)
+                {
+                    if (prefabs[i] && prefabs[i].name == cb.BasePlaceableName && list.tabletBlocksByIndex[i])
+                    {
+                        return list.tabletBlocksByIndex[i];
+                    }
+                }
+            }
+            if (cb.BasedId >= 0 && cb.BasedId < list.tabletBlocksByIndex.Length)
+            {
+                return list.tabletBlocksByIndex[cb.BasedId];
+            }
+            return null;
         }
     }
 }

@@ -25,6 +25,13 @@ namespace CustomBlocks.Core.Patches
                     {
                         GameObject.Destroy(child.gameObject);
                     }
+                    // Destroy is deferred; drop the cloned page's references to
+                    // the dying items now, or setPageLayer trips over them
+                    // later with a MissingReferenceException (review finding #8)
+                    inventoryPage.pickableOnPage.RemoveAll(p =>
+                        p == null || (p is Component && (((Component)p) == null || ((Component)p).transform.IsChildOf(items))));
+                    inventoryPage.textOnPage.RemoveAll(t =>
+                        t == null || t.transform.IsChildOf(items));
 
                     CustomBlockRegistry.InitBlocks();
 
@@ -44,10 +51,33 @@ namespace CustomBlocks.Core.Patches
                         }
                     }
 
-                    // place new Mod Blocks page, before background selection
-                    __instance.InventoryPages[__instance.InventoryPages.Length - 1] = __instance.InventoryPages[__instance.InventoryPages.Length - 2];
-                    __instance.InventoryPages[__instance.InventoryPages.Length - 2] = __instance.InventoryPages[__instance.InventoryPages.Length - 3];
-                    __instance.InventoryPages[__instance.InventoryPages.Length - 3] = inventoryPage;
+                    // insert directly after the last inventory-typed page, in
+                    // front of the trailing special pages — located by
+                    // pageType, not by counting from the end (review finding #9)
+                    int insertAt = __instance.InventoryPages.Length - 1;
+                    for (int i = __instance.InventoryPages.Length - 2; i >= 0; i--)
+                    {
+                        InventoryPage p = __instance.InventoryPages[i];
+                        if (p != null
+                            && p.pageType >= InventoryPage.PageTypes.InventoryPage1
+                            && p.pageType <= InventoryPage.PageTypes.InventoryPage9)
+                        {
+                            insertAt = i + 1;
+                            break;
+                        }
+                    }
+                    for (int i = __instance.InventoryPages.Length - 1; i > insertAt; i--)
+                    {
+                        __instance.InventoryPages[i] = __instance.InventoryPages[i - 1];
+                    }
+                    __instance.InventoryPages[insertAt] = inventoryPage;
+                    // keep the transform order in step with the page order
+                    if (insertAt > 0 && __instance.InventoryPages[insertAt - 1] != null
+                        && __instance.InventoryPages[insertAt - 1].transform.parent == inventoryPage.transform.parent)
+                    {
+                        inventoryPage.transform.SetSiblingIndex(
+                            __instance.InventoryPages[insertAt - 1].transform.GetSiblingIndex() + 1);
+                    }
                 }
             }
         }

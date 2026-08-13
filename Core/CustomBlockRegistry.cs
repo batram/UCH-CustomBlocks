@@ -72,22 +72,41 @@ namespace CustomBlocks.Core
                 }
             }
 
-            int id;
-            if (!legacyIds.TryGetValue(definition.Name, out id))
-            {
-                id = StableId(definition.Name);
-            }
-            if (byCustomId.ContainsKey(id))
-            {
-                Debug.LogError("CustomBlockRegistry: id collision between " + definition.Name
-                    + " and " + byCustomId[id].Name + " (id " + id + ") - block not registered");
-                return;
-            }
-
             definitions.Add(definition);
             byType[type] = definition;
-            byCustomId[id] = definition;
-            customIds[type] = id;
+        }
+
+        // Ids are assigned at init, over the definitions sorted by name, with
+        // deterministic linear probing on hash collisions — peers running the
+        // same mod set agree on every id regardless of registration order.
+        static void AssignCustomIds()
+        {
+            List<CustomBlock> byName = new List<CustomBlock>(definitions);
+            byName.Sort((a, b) => string.CompareOrdinal(a.Name, b.Name));
+
+            int range = MaxCustomId - MinHashedId + 1;
+            foreach (CustomBlock definition in byName)
+            {
+                int id;
+                if (!legacyIds.TryGetValue(definition.Name, out id))
+                {
+                    id = StableId(definition.Name);
+                    int probes = 0;
+                    while (byCustomId.ContainsKey(id) && probes < range)
+                    {
+                        id = MinHashedId + ((id - MinHashedId + 1) % range);
+                        probes += 1;
+                    }
+                    if (probes >= range)
+                    {
+                        Debug.LogError("CustomBlockRegistry: id space exhausted - "
+                            + definition.Name + " gets no id");
+                        continue;
+                    }
+                }
+                byCustomId[id] = definition;
+                customIds[definition.GetType()] = id;
+            }
         }
 
         // FNV-1a over the block name, folded into [MinHashedId, MaxCustomId]
@@ -156,6 +175,8 @@ namespace CustomBlocks.Core
                 return;
             }
             Initialized = true;
+
+            AssignCustomIds();
 
             GameRulePreset ruleset = GameSettings.GetInstance().DefaultRuleset;
             OriginalBlockCount = ruleset.Blocks.Length;

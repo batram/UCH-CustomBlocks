@@ -50,7 +50,10 @@ namespace CustomBlocks.Backgrounds.Patches
         static void ToggleLayerHighlight()
         {
             var toggle = GameObject.Find("HighlightToggle")?.GetComponent<Toggle>();
-            toggle.isOn = !toggle.isOn; ;
+            if (toggle)
+            {
+                toggle.isOn = !toggle.isOn;
+            }
         }
 
         static void SwitchLayer(bool reverse = false)
@@ -62,7 +65,10 @@ namespace CustomBlocks.Backgrounds.Patches
             }
 
             var dropy = GameObject.Find("LayerDropdown")?.GetComponent<Dropdown>();
-            dropy.value = CustomBlocksMod.selectedLayer;
+            if (dropy)
+            {
+                dropy.value = CustomBlocksMod.selectedLayer;
+            }
         }
     }
 }

@@ -28,6 +28,13 @@ namespace CustomBlocks.Core.Patches
     {
         static void Postfix(HoneyPiece __instance, int playerNumber, bool sendEvent, bool force = false)
         {
+            // the main block's own Place already fired OnPlace (and places its
+            // children, which is how we got here) — only a glue piece placed
+            // on its own still needs to notify the block (review finding #11)
+            if (__instance.MainBlock == null || __instance.MainBlock.placed)
+            {
+                return;
+            }
             __instance.MainBlock.gameObject.GetComponent<CustomBlock>()?.OnPlace(__instance, playerNumber, sendEvent, force);
         }
     }
