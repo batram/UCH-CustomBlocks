@@ -1,12 +1,12 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<testsuites tests="126" failures="5" time="242,341">
-  <testsuite name="customblocks/arena-load" tests="4" failures="0" time="12,882">
+<testsuites tests="128" failures="5" time="244,402">
+  <testsuite name="customblocks/arena-load" tests="4" failures="0" time="13,355">
     <testcase classname="customblocks/arena-load" name="load fixture through the level-entry path.place phase reached" />
     <testcase classname="customblocks/arena-load" name="restored blocks.restored" />
     <testcase classname="customblocks/arena-load" name="back to treehouse.in the treehouse" />
     <testcase classname="customblocks/arena-load" name="back to treehouse.no errors logged on any peer" />
   </testsuite>
-  <testsuite name="customblocks/background" tests="12" failures="2" time="15,396">
+  <testsuite name="customblocks/background" tests="12" failures="2" time="15,623">
     <testcase classname="customblocks/background" name="into free play.place phase reached" />
     <testcase classname="customblocks/background" name="background mode via the real pick path.background mode on" />
     <testcase classname="customblocks/background" name="background mode via the real pick path.picked block became background" />
@@ -24,7 +24,7 @@
     <testcase classname="customblocks/background" name="back to treehouse.in the treehouse" />
     <testcase classname="customblocks/background" name="back to treehouse.no errors logged on any peer" />
   </testsuite>
-  <testsuite name="customblocks/behaviors" tests="15" failures="1" time="42,470">
+  <testsuite name="customblocks/behaviors" tests="15" failures="1" time="41,788">
     <testcase classname="customblocks/behaviors" name="into free play, character in world.place phase reached" />
     <testcase classname="customblocks/behaviors" name="OneRoundWood: rounded collider.OneRoundWood has a circle collider" />
     <testcase classname="customblocks/behaviors" name="MultiStart: extra spawn position.MultiStart adds a spawn position near itself" />
@@ -43,7 +43,7 @@
     <testcase classname="customblocks/behaviors" name="back to treehouse.in the treehouse" />
     <testcase classname="customblocks/behaviors" name="back to treehouse.no errors logged on any peer" />
   </testsuite>
-  <testsuite name="customblocks/book-pick-place" tests="11" failures="0" time="14,793">
+  <testsuite name="customblocks/book-pick-place" tests="11" failures="0" time="11,627">
     <testcase classname="customblocks/book-pick-place" name="into free play.both peers in place phase" />
     <testcase classname="customblocks/book-pick-place" name="pick from book.picked" />
     <testcase classname="customblocks/book-pick-place" name="pick from book.host has the picked instance" />
@@ -56,16 +56,17 @@
     <testcase classname="customblocks/book-pick-place" name="back to treehouse.both back in treehouse" />
     <testcase classname="customblocks/book-pick-place" name="back to treehouse.no errors logged on any peer" />
   </testsuite>
-  <testsuite name="customblocks/geometry-save" tests="4" failures="1" time="11,087">
-    <testcase classname="customblocks/geometry-save" name="into free play.place phase reached" />
-    <testcase classname="customblocks/geometry-save" name="move a level piece.level offers placeable geometry [KNOWN GAP — needs a different level]">
-      <failure message="sheep-host(:7311 net1): Exception invoking REPL: System.Exception: FleetCB: no level piece found to move&#xD;">sheep-host(:7311 net1): Exception invoking REPL: System.Exception: FleetCB: no level piece found to move
-</failure>
+  <testsuite name="customblocks/geometry-save" tests="6" failures="1" time="14,292">
+    <testcase classname="customblocks/geometry-save" name="into the fixture level.place phase reached" />
+    <testcase classname="customblocks/geometry-save" name="save, clear, reload.snapshot loaded" />
+    <testcase classname="customblocks/geometry-save" name="save, clear, reload.level piece position after reload" />
+    <testcase classname="customblocks/geometry-save" name="save, clear, reload.moved level geometry persisted [KNOWN DEFECT]">
+      <failure message="moved to x=-6.0;9.0, after reload x=-6.0;6.0">moved to x=-6.0;9.0, after reload x=-6.0;6.0</failure>
     </testcase>
-    <testcase classname="customblocks/geometry-save" name="move a level piece.in the treehouse" />
-    <testcase classname="customblocks/geometry-save" name="move a level piece.no errors logged on any peer" />
+    <testcase classname="customblocks/geometry-save" name="back to treehouse.in the treehouse" />
+    <testcase classname="customblocks/geometry-save" name="back to treehouse.no errors logged on any peer" />
   </testsuite>
-  <testsuite name="customblocks/inventory-book" tests="10" failures="0" time="21,432">
+  <testsuite name="customblocks/inventory-book" tests="10" failures="0" time="19,502">
     <testcase classname="customblocks/inventory-book" name="into free play.place phase reached" />
     <testcase classname="customblocks/inventory-book" name="book structure.pages" />
     <testcase classname="customblocks/inventory-book" name="page screenshots.book has pages" />
@@ -77,7 +78,7 @@
     <testcase classname="customblocks/inventory-book" name="back to treehouse.in the treehouse" />
     <testcase classname="customblocks/inventory-book" name="back to treehouse.no errors logged on any peer" />
   </testsuite>
-  <testsuite name="customblocks/missing-mod-save" tests="8" failures="0" time="13,909">
+  <testsuite name="customblocks/missing-mod-save" tests="8" failures="0" time="14,183">
     <testcase classname="customblocks/missing-mod-save" name="into free play.place phase reached" />
     <testcase classname="customblocks/missing-mod-save" name="place and snapshot.snapshot contains PigFarmButton's id" />
     <testcase classname="customblocks/missing-mod-save" name="reload without the 'missing mod'.load call survived" />
@@ -87,7 +88,7 @@
     <testcase classname="customblocks/missing-mod-save" name="back to treehouse.in the treehouse" />
     <testcase classname="customblocks/missing-mod-save" name="back to treehouse.no errors logged on any peer" />
   </testsuite>
-  <testsuite name="customblocks/party-box" tests="8" failures="0" time="19,207">
+  <testsuite name="customblocks/party-box" tests="8" failures="0" time="19,726">
     <testcase classname="customblocks/party-box" name="into party mode.place phase reached" />
     <testcase classname="customblocks/party-box" name="default weights.party weights" />
     <testcase classname="customblocks/party-box" name="disable one custom block.Acid frequency set to 0" />
@@ -97,7 +98,7 @@
     <testcase classname="customblocks/party-box" name="back to treehouse.both back in treehouse" />
     <testcase classname="customblocks/party-box" name="back to treehouse.no errors logged on any peer" />
   </testsuite>
-  <testsuite name="customblocks/party-draw" tests="7" failures="0" time="10,503">
+  <testsuite name="customblocks/party-draw" tests="7" failures="0" time="11,025">
     <testcase classname="customblocks/party-draw" name="zero out vanilla, into party mode.vanilla frequencies zeroed" />
     <testcase classname="customblocks/party-draw" name="zero out vanilla, into party mode.place phase reached" />
     <testcase classname="customblocks/party-draw" name="only custom blocks drawable.vanilla weight sum is 0" />
@@ -106,7 +107,7 @@
     <testcase classname="customblocks/party-draw" name="restore vanilla frequencies.both back in treehouse" />
     <testcase classname="customblocks/party-draw" name="restore vanilla frequencies.no errors logged on any peer" />
   </testsuite>
-  <testsuite name="customblocks/place-save-load" tests="18" failures="0" time="14,857">
+  <testsuite name="customblocks/place-save-load" tests="18" failures="0" time="15,257">
     <testcase classname="customblocks/place-save-load" name="into free play.place phase reached" />
     <testcase classname="customblocks/place-save-load" name="place one of each custom block.placed OneRoundWood" />
     <testcase classname="customblocks/place-save-load" name="place one of each custom block.placed ReCoin" />
@@ -126,14 +127,14 @@
     <testcase classname="customblocks/place-save-load" name="back to treehouse.in the treehouse" />
     <testcase classname="customblocks/place-save-load" name="back to treehouse.no errors logged on any peer" />
   </testsuite>
-  <testsuite name="customblocks/registry" tests="5" failures="0" time="1,096">
+  <testsuite name="customblocks/registry" tests="5" failures="0" time="1,229">
     <testcase classname="customblocks/registry" name="registry.registry" />
     <testcase classname="customblocks/registry" name="prefab table.in the treehouse" />
     <testcase classname="customblocks/registry" name="prefab table.prefab table extended past vanilla" />
     <testcase classname="customblocks/registry" name="prefab table.placeable table" />
     <testcase classname="customblocks/registry" name="prefab table.no errors logged on any peer" />
   </testsuite>
-  <testsuite name="customblocks/rounds" tests="8" failures="0" time="11,162">
+  <testsuite name="customblocks/rounds" tests="8" failures="0" time="11,413">
     <testcase classname="customblocks/rounds" name="into party mode.place phase reached" />
     <testcase classname="customblocks/rounds" name="place custom blocks.placed in round 1" />
     <testcase classname="customblocks/rounds" name="advance to play phase.play phase reached" />
@@ -143,7 +144,7 @@
     <testcase classname="customblocks/rounds" name="back to treehouse.both back in treehouse" />
     <testcase classname="customblocks/rounds" name="back to treehouse.no errors logged on any peer" />
   </testsuite>
-  <testsuite name="customblocks/rules-tablet" tests="9" failures="0" time="15,723">
+  <testsuite name="customblocks/rules-tablet" tests="9" failures="0" time="16,139">
     <testcase classname="customblocks/rules-tablet" name="into free play.place phase reached" />
     <testcase classname="customblocks/rules-tablet" name="rules screen.rules screen visible" />
     <testcase classname="customblocks/rules-tablet" name="rules screen.tablet block list" />
@@ -154,7 +155,7 @@
     <testcase classname="customblocks/rules-tablet" name="back to treehouse.in the treehouse" />
     <testcase classname="customblocks/rules-tablet" name="back to treehouse.no errors logged on any peer" />
   </testsuite>
-  <testsuite name="customblocks/scoring" tests="7" failures="1" time="12,912">
+  <testsuite name="customblocks/scoring" tests="7" failures="1" time="12,569">
     <testcase classname="customblocks/scoring" name="into party mode.place phase reached" />
     <testcase classname="customblocks/scoring" name="into play phase.play phase reached" />
     <testcase classname="customblocks/scoring" name="award a vanilla suicide point.scorekeeper state" />

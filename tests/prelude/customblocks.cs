@@ -13,7 +13,7 @@ using UnityEngine;
 
 public static class FleetCB
 {
-    public const string Version = "1.16";
+    public const string Version = "1.18";
 
     static Type Registry()
     {
@@ -350,11 +350,12 @@ public static class FleetCB
     // the mod's MemorizeInitialLevelPlaceables patch currently destroys.
     public static string MoveLevelPiece(float dx)
     {
-        // run before placing anything: every Placeable in the scene is level
-        // geometry. Leave the start plank and goal alone.
+        // run before placing anything: every PLACED Placeable in the scene is
+        // level geometry (every Placeable carries a Rigidbody2D, so that is no
+        // discriminator). Leave the start plank and goal alone.
         foreach (Placeable p in UnityEngine.Object.FindObjectsOfType<Placeable>())
         {
-            if (p.GetComponent<Rigidbody2D>() != null) continue;
+            if (!p.placed) continue;
             if (p.name.Contains("Start") || p.name.Contains("Goal")) continue;
             p.transform.position += new Vector3(dx, 0f, 0f);
             Physics2D.SyncTransforms();
@@ -363,15 +364,19 @@ public static class FleetCB
         throw new Exception("FleetCB: no level piece found to move");
     }
 
+    // ALL x positions of pieces with that name, sorted — the fixture's boxes
+    // share a name, so a single-match probe would be ambiguous.
     public static string LevelPieceX(string pieceName)
     {
-        foreach (PlaceableMetadata m in UnityEngine.Object.FindObjectsOfType<PlaceableMetadata>())
+        List<string> xs = new List<string>();
+        foreach (Placeable p in UnityEngine.Object.FindObjectsOfType<Placeable>())
         {
-            Placeable p = m.GetComponent<Placeable>();
-            if (p != null && p.name == pieceName)
-                return p.transform.position.x.ToString("F1", System.Globalization.CultureInfo.InvariantCulture);
+            if (p.name == pieceName && p.placed)
+                xs.Add(p.transform.position.x.ToString("F1", System.Globalization.CultureInfo.InvariantCulture));
         }
-        return "gone";
+        if (xs.Count == 0) return "gone";
+        xs.Sort(StringComparer.Ordinal);
+        return string.Join(";", xs.ToArray());
     }
 
     // ------------------------------------------------------------ party box
