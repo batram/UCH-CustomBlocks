@@ -13,7 +13,7 @@ using UnityEngine;
 
 public static class FleetCB
 {
-    public const string Version = "1.24";
+    public const string Version = "1.25";
 
     static Type Registry()
     {
@@ -604,7 +604,15 @@ public static class FleetCB
     {
         ScoreKeeper keeper = ScoreKeeper.Instance;
         if (keeper == null) throw new Exception("FleetCB: no ScoreKeeper (not in a scored mode?)");
-        keeper.AwardPoint(new PointBlock(PointBlock.pointBlockType.suicide, playerNumber), false);
+        // raw message, not AwardPoint: default party rules carry no 'suicide'
+        // entry in the points dictionary, so AwardPoint silently drops the
+        // block before it ever reaches the network. The receive path (the one
+        // the PigDirt patch used to hijack) has no such filter.
+        MsgPointAwarded msg = new MsgPointAwarded();
+        msg.PlayerNumber = playerNumber;
+        msg.PointType = PointBlock.pointBlockType.suicide;
+        msg.AlwaysAward = false;
+        UnityEngine.Networking.NetworkManager.singleton.client.Send(NetMsgTypes.PointAwarded, msg);
         return "sent";
     }
 

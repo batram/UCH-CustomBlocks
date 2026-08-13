@@ -1,1 +1,9 @@
-[]
+[
+  {
+    "field": "newPointBlocks",
+    "player": 1,
+    "pointValue": 10,
+    "suicideValue": 0,
+    "type": "suicide"
+  }
+]

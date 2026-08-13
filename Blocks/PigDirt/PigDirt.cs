@@ -13,6 +13,11 @@ namespace CustomBlocks.Blocks
 {
     class PigDirt : CustomBlock
     {
+        // pig-dirt penalty points travel as PointAwarded with the player
+        // number offset into a range no vanilla sender can produce — the
+        // point TYPE stays untouched, so real suicides pass through intact
+        public const int magicPlayerNumberOffset = 7000;
+
         public override int BasedId { get { return 30; } }
         public override string BasePlaceableName { get { return "Coin"; } }
         public override string BasePickableBlockName { get { return "Coin_Pick"; } }
@@ -85,11 +90,9 @@ namespace CustomBlocks.Blocks
                     Debug.Log("CmdFinishedWithCoinPatch Prefix Dirt indeed");
 
                     PointBlock pb = new PointBlock(PointBlock.pointBlockType.coin, __instance.networkNumber);
-                    //ScoreKeeper.Instance.AwardPoint(pb, false);
-                    //Hide coin => pigdirt type in suicide
                     MsgPointAwarded msgPointAwarded = new MsgPointAwarded();
-                    msgPointAwarded.PlayerNumber = pb.playerNumber;
-                    msgPointAwarded.PointType = PointBlock.pointBlockType.suicide;
+                    msgPointAwarded.PlayerNumber = pb.playerNumber + magicPlayerNumberOffset;
+                    msgPointAwarded.PointType = PointBlock.pointBlockType.coin;
                     msgPointAwarded.AlwaysAward = pb.AlwaysAward;
                     NetworkManager.singleton.client.Send(NetMsgTypes.PointAwarded, msgPointAwarded);
 
@@ -112,9 +115,10 @@ namespace CustomBlocks.Blocks
                     {
                         MsgPointAwarded msgPointAwarded = networkMessageReceivedEvent.ReadMessage as MsgPointAwarded;
 
-                        if (msgPointAwarded.PointType == PointBlock.pointBlockType.suicide)
+                        if (msgPointAwarded != null && msgPointAwarded.PlayerNumber >= magicPlayerNumberOffset)
                         {
-                            PointBlock pointBlock = new PointBlock(PointBlock.pointBlockType.coin, msgPointAwarded.PlayerNumber);
+                            PointBlock pointBlock = new PointBlock(PointBlock.pointBlockType.coin,
+                                msgPointAwarded.PlayerNumber - magicPlayerNumberOffset);
                             pointBlock.suicideValue = -1;
                             __instance.addPointBlock(pointBlock);
                             return false;

@@ -39,8 +39,7 @@ await Task.Delay(2000);
 
 await GoldenOn("scorekeeper state", Host, "FleetCB.ScoreBlocksJson()");
 string blocks = await Host.EvalAsync("FleetCB.ScoreBlocksJson()");
-// INTENDED behavior — review finding #1 predicts this fails today
-Check("suicide point kept its type", blocks.Contains("\\\"type\\\":\\\"suicide\\\"") || blocks.Contains("\"type\":\"suicide\""), "");
+Check("suicide point kept its type",blocks.Contains("\\\"type\\\":\\\"suicide\\\"") || blocks.Contains("\"type\":\"suicide\""), "");
 Check("no smuggled pig-dirt point", !blocks.Contains("suicideValue\":-1") && !blocks.Contains("suicideValue\\\":-1"), "");
 
 Step("back to treehouse");
