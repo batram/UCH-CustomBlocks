@@ -9,9 +9,19 @@
 // Ordering matters: blocks that transform or kill the character run last.
 
 AllowLogErrors("Could not find main block for sub-element GluePiece");
+// treehouse re-entry noise on a NetTest host: the custom level portals poke
+// destroyed network views while the lobby resets (see the fleet knowledge notes)
+AllowLogErrors("CustomLevelPortal.UpdateAppearanceForClient");
+AllowLogErrors("LevelSelectController.SetupLobbyAfterWait");
+AllowLogErrors("UnityEngine.Light.set_color");
+AllowLogErrors("UndergroundComputer.UpdateVisibility");
+AllowLogErrors("TreehouseGrow.SetNewState");
 AllowLogErrors("Could not attach spawned netsurrogate");
 
 Step("into free play, character in world");
+// self-heal: a previous scenario may have died outside the treehouse
+await Host.DoAsync("Fleet.ReturnToTreehouse();");
+await UntilAll("Fleet.Scene() == \"TreeHouseLobby\"", 60);
 // every lobby player must pick, whatever size the fleet runs at
 for (int p = 0; p < Peers.Count; p++)
     await Peers[p].DoAsync($"Fleet.PickCharacter(\"{(p == 0 ? "SQUIRREL" : "FOX")}\");");

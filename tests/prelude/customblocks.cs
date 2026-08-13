@@ -13,7 +13,7 @@ using UnityEngine;
 
 public static class FleetCB
 {
-    public const string Version = "1.13";
+    public const string Version = "1.16";
 
     static Type Registry()
     {
@@ -318,6 +318,60 @@ public static class FleetCB
             }
         }
         throw new Exception("FleetCB: no unplaced " + blockName + " instance to place");
+    }
+
+    // The REAL drop: position the held piece, validate CanPlace, and fire the
+    // cursor's own accept handler — MsgPiecePlaced goes out, the echo places
+    // the piece on every peer (which Placeable.Place alone does not).
+    public static string CursorDropAt(float x, float y)
+    {
+        PiecePlacementCursor cursor = LocalCursor();
+        if (cursor.Piece == null) throw new Exception("FleetCB: cursor holds no piece");
+        cursor.transform.position = new Vector3(x, y, cursor.transform.position.z);
+        cursor.Piece.transform.position = new Vector3(x, y, cursor.Piece.transform.position.z);
+        Physics2D.SyncTransforms();
+        if (!cursor.Piece.CanPlace()) return "cannot-place:" + cursor.Piece.name;
+        typeof(PiecePlacementCursor)
+            .GetMethod("OnAcceptDown", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+            .Invoke(cursor, null);
+        return cursor.Piece.name;
+    }
+
+    public static string CursorHolds()
+    {
+        PiecePlacementCursor cursor = LocalCursor();
+        return cursor.Piece == null ? "nothing" : cursor.Piece.name;
+    }
+
+    // --------------------------------------------- level geometry (QuickSaver)
+
+    // Move a piece the LEVEL shipped with (not one we placed): its new position
+    // should persist through save/load via the <moved> records — the behavior
+    // the mod's MemorizeInitialLevelPlaceables patch currently destroys.
+    public static string MoveLevelPiece(float dx)
+    {
+        // run before placing anything: every Placeable in the scene is level
+        // geometry. Leave the start plank and goal alone.
+        foreach (Placeable p in UnityEngine.Object.FindObjectsOfType<Placeable>())
+        {
+            if (p.GetComponent<Rigidbody2D>() != null) continue;
+            if (p.name.Contains("Start") || p.name.Contains("Goal")) continue;
+            p.transform.position += new Vector3(dx, 0f, 0f);
+            Physics2D.SyncTransforms();
+            return p.name;
+        }
+        throw new Exception("FleetCB: no level piece found to move");
+    }
+
+    public static string LevelPieceX(string pieceName)
+    {
+        foreach (PlaceableMetadata m in UnityEngine.Object.FindObjectsOfType<PlaceableMetadata>())
+        {
+            Placeable p = m.GetComponent<Placeable>();
+            if (p != null && p.name == pieceName)
+                return p.transform.position.x.ToString("F1", System.Globalization.CultureInfo.InvariantCulture);
+        }
+        return "gone";
     }
 
     // ------------------------------------------------------------ party box

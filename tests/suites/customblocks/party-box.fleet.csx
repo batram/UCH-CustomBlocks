@@ -8,12 +8,24 @@
 // half the value of this scenario.
 
 AllowLogErrors("Could not find main block for sub-element GluePiece");
+// treehouse re-entry noise on a NetTest host: the custom level portals poke
+// destroyed network views while the lobby resets (see the fleet knowledge notes)
+AllowLogErrors("CustomLevelPortal.UpdateAppearanceForClient");
+AllowLogErrors("LevelSelectController.SetupLobbyAfterWait");
+AllowLogErrors("UnityEngine.Light.set_color");
+AllowLogErrors("UndergroundComputer.UpdateVisibility");
+AllowLogErrors("TreehouseGrow.SetNewState");
 // party -> treehouse -> party transition noise on Farm, seen with the mod on;
 // whether it is vanilla or ours is an open question the baseline keeps visible
 AllowLogErrors("UndergroundComputer.UpdateVisibility");
+AllowLogErrors("TreehouseGrow.SetNewState");
 AllowLogErrors("UnityEngine.Light.set_color");
 
 Step("into party mode");
+// self-heal: a previous scenario may have died outside the treehouse
+await Host.DoAsync("Fleet.ReturnToTreehouse();");
+await UntilAll("Fleet.Scene() == \"TreeHouseLobby\"", 60);
+await Host.EvalAsync("FleetCB.RestoreVanillaFrequencies()");
 // every lobby player must pick, whatever size the fleet runs at
 for (int p = 0; p < Peers.Count; p++)
     await Peers[p].DoAsync($"Fleet.PickCharacter(\"{(p == 0 ? "SQUIRREL" : "FOX")}\");");

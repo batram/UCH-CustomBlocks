@@ -11,6 +11,13 @@
 // KNOWN DEFECT (baseline): glue-based custom blocks leave a GluePiece
 // sub-element the save sweep cannot map; surfaces on scene changes.
 AllowLogErrors("Could not find main block for sub-element GluePiece");
+// treehouse re-entry noise on a NetTest host: the custom level portals poke
+// destroyed network views while the lobby resets (see the fleet knowledge notes)
+AllowLogErrors("CustomLevelPortal.UpdateAppearanceForClient");
+AllowLogErrors("LevelSelectController.SetupLobbyAfterWait");
+AllowLogErrors("UnityEngine.Light.set_color");
+AllowLogErrors("UndergroundComputer.UpdateVisibility");
+AllowLogErrors("TreehouseGrow.SetNewState");
 // artifact of the host-local Place shortcut: the client has no placed piece
 // for the surrogate to attach to, and the host's cursor object is inactive
 // when scene teardown pokes it
@@ -18,6 +25,9 @@ AllowLogErrors("Could not attach spawned netsurrogate");
 AllowLogErrors("cursor' is inactive");
 
 Step("into free play");
+// self-heal: a previous scenario may have died outside the treehouse
+await Host.DoAsync("Fleet.ReturnToTreehouse();");
+await UntilAll("Fleet.Scene() == \"TreeHouseLobby\"", 60);
 // every lobby player must pick, whatever size the fleet runs at
 for (int p = 0; p < Peers.Count; p++)
     await Peers[p].DoAsync($"Fleet.PickCharacter(\"{(p == 0 ? "SQUIRREL" : "FOX")}\");");
@@ -41,16 +51,18 @@ bool onClient = await Until(Clients[0],
     "FleetCB.PlacedCustomJson().Contains(\"PigFarmButton\")", 15);
 Check("client received the pick over the network", onClient);
 
-Step("place it");
-await Host.DoAsync("FleetCB.PlacePicked(\"PigFarmButton\", 2f, 5f);");
+Step("place it — the real cursor drop");
+// MsgPiecePlaced round-trips through the server and places on EVERY peer
+string dropped = await Host.EvalAsync("FleetCB.CursorDropAt(2f, 5f)");
+Check("drop accepted", !dropped.Contains("cannot-place"), dropped);
 await RequireOn("placed on host", Host,
     "FleetCB.PlacedCustomJson().Contains(\"PigFarmButton(Clone):113:placed\")", 15);
+bool placedOnClient = await Until(Clients[0],
+    "FleetCB.PlacedCustomJson().Contains(\":113:placed\")", 15);
+Check("placed on client via the network", placedOnClient);
 
-// KNOWN BEHAVIOR (baseline): Placeable.Place(sendEvent: true) marks only the
-// local copy placed — the remote copy stays 'unplaced'. Recorded per peer so
-// a change in either direction shows up.
-await GoldenOn("after place host", Host, "FleetCB.PlacedCustomJson()");
-await GoldenOn("after place client", Clients[0], "FleetCB.PlacedCustomJson()");
+await Agree("custom blocks agree on both peers", "FleetCB.PlacedCustomJson()");
+await Golden("after place", "FleetCB.PlacedCustomJson()");
 await SaveScreenshot(Host, "customblocks/book-pick-place-host.png");
 await SaveScreenshot(Clients[0], "customblocks/book-pick-place-client.png");
 
