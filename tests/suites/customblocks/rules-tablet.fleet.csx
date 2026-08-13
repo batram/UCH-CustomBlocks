@@ -13,7 +13,9 @@
 AllowLogErrors("Could not find main block for sub-element GluePiece");
 
 Step("into free play");
-await Host.DoAsync("Fleet.PickCharacter(\"SQUIRREL\");");
+// every lobby player must pick, whatever size the fleet runs at
+for (int p = 0; p < Peers.Count; p++)
+    await Peers[p].DoAsync($"Fleet.PickCharacter(\"{(p == 0 ? "SQUIRREL" : "FOX")}\");");
 await Task.Delay(1000);
 await Host.DoAsync("Fleet.StartGame(\"Farm\", \"FREEPLAY\");");
 await Require("place phase reached", "Fleet.Scene() != \"TreeHouseLobby\" && Fleet.Phase() == \"PLACE\"", 90);
@@ -24,7 +26,8 @@ string screen = await Host.EvalAsync("FleetCB.ShowRulesScreen()");
 Log($"rules screen: {screen}");
 
 // The screenshot is only evidence if the screen is actually on camera.
-await Require("rules screen visible", "FleetCB.RulesScreenVisible()", 15);
+// Host-only: the book is open on the host, not on other peers.
+await RequireOn("rules screen visible", Host, "FleetCB.RulesScreenVisible()", 15);
 await Task.Delay(1500);
 
 await Golden("tablet block list", "FleetCB.TabletJson()");
@@ -35,7 +38,7 @@ Check("rules screen screenshot", saved is not null, saved ?? "no screenshot (hea
 Step("block probability page");
 string probScreen = await Host.EvalAsync("FleetCB.ShowBlockProbability()");
 Log($"probability screen: {probScreen}");
-await Require("block list visible", "FleetCB.BlockProbabilityVisible()", 15);
+await RequireOn("block list visible", Host, "FleetCB.BlockProbabilityVisible()", 15);
 await Task.Delay(1500);
 string? probShot = await SaveScreenshot(Host, "customblocks/block-probability.png");
 Check("block probability screenshot", probShot is not null, probShot ?? "no screenshot (headless?)");

@@ -12,7 +12,9 @@
 AllowLogErrors("Could not find main block for sub-element GluePiece");
 
 Step("into free play");
-await Host.DoAsync("Fleet.PickCharacter(\"SQUIRREL\");");
+// every lobby player must pick, whatever size the fleet runs at
+for (int p = 0; p < Peers.Count; p++)
+    await Peers[p].DoAsync($"Fleet.PickCharacter(\"{(p == 0 ? "SQUIRREL" : "FOX")}\");");
 await Task.Delay(1000);
 await Host.DoAsync("Fleet.StartGame(\"Farm\", \"FREEPLAY\");");
 await Require("place phase reached", "Fleet.Scene() != \"TreeHouseLobby\" && Fleet.Phase() == \"PLACE\"", 90);

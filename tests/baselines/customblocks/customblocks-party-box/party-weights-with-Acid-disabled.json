@@ -1,0 +1,42 @@
+[
+  {
+    "name": "OneRoundWood",
+    "weight": 2000
+  },
+  {
+    "name": "ReCoin",
+    "weight": 2000
+  },
+  {
+    "name": "MultiStart",
+    "weight": 0
+  },
+  {
+    "name": "RCReceiver",
+    "weight": 2000
+  },
+  {
+    "name": "RCTransmitter",
+    "weight": 1000
+  },
+  {
+    "name": "FloatyCloud",
+    "weight": 2000
+  },
+  {
+    "name": "PigDirt",
+    "weight": 2000
+  },
+  {
+    "name": "ChickenRoll",
+    "weight": 2000
+  },
+  {
+    "name": "Acid",
+    "weight": 0
+  },
+  {
+    "name": "PigFarmButton",
+    "weight": 2000
+  }
+]

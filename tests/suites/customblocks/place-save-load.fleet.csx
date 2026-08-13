@@ -9,9 +9,14 @@
 // GluePiece sub-element the save sweep cannot map to a main block. Allowed here
 // so the baseline records it without failing the run; remove once fixed.
 AllowLogErrors("Could not find main block for sub-element GluePiece");
+// host-local direct placement leaves the client with nothing for the spawned
+// surrogate to attach to
+AllowLogErrors("Could not attach spawned netsurrogate");
 
 Step("into free play");
-await Host.DoAsync("Fleet.PickCharacter(\"SQUIRREL\");");
+// every lobby player must pick, whatever size the fleet runs at
+for (int p = 0; p < Peers.Count; p++)
+    await Peers[p].DoAsync($"Fleet.PickCharacter(\"{(p == 0 ? "SQUIRREL" : "FOX")}\");");
 await Task.Delay(1000);
 await Host.DoAsync("Fleet.StartGame(\"Farm\", \"FREEPLAY\");");
 await Require("place phase reached", "Fleet.Scene() != \"TreeHouseLobby\" && Fleet.Phase() == \"PLACE\"", 90);
@@ -30,7 +35,7 @@ for (int i = 0; i < blocks.Length; i++)
     Check($"placed {blocks[i]}", placed.Trim('"').StartsWith(blocks[i]), placed);
 }
 await Task.Delay(1000);
-await Golden("placed before save", "FleetCB.PlacedCustomJson()");
+await GoldenOn("placed before save", Host, "FleetCB.PlacedCustomJson()");
 await SaveScreenshot(Host, "customblocks/placed-blocks.png");
 
 Step("snapshot");
@@ -39,6 +44,11 @@ Check("snapshot produced", b64.Length > 0, $"{b64.Length} base64 chars");
 
 // The ids on disk must be the stable magic ids (5000+), not session slots.
 await Golden("snapshot block ids", $"FleetCB.SnapshotBlockIdsB64(\"{b64}\")");
+
+// Export the snapshot for eyeballing and for promoting to the arena-load
+// fixture when a format change is deliberate.
+SaveArtifact("customblocks/snapshot.xml",
+    System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(b64)));
 
 Step("clear and reload");
 await Host.DoAsync("FleetCB.ClearLevel();");
@@ -49,7 +59,7 @@ Check("snapshot loaded", loadOk);
 await Task.Delay(2000);
 
 // The same set of blocks, at the same serialize indices, must come back.
-await Golden("placed after load", "FleetCB.PlacedCustomJson()");
+await GoldenOn("placed after load", Host, "FleetCB.PlacedCustomJson()");
 await SaveScreenshot(Host, "customblocks/reloaded-blocks.png");
 
 Step("back to treehouse");

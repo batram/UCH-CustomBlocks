@@ -13,7 +13,7 @@ using UnityEngine;
 
 public static class FleetCB
 {
-    public const string Version = "1.5";
+    public const string Version = "1.8";
 
     static Type Registry()
     {
@@ -263,6 +263,113 @@ public static class FleetCB
         List<string> quoted = new List<string>();
         foreach (string n in names) quoted.Add(Q(n));
         return Arr(quoted);
+    }
+
+    // ------------------------------------------------- book pick (real path)
+
+    static PiecePlacementCursor LocalCursor()
+    {
+        foreach (PiecePlacementCursor c in UnityEngine.Object.FindObjectsOfType<PiecePlacementCursor>())
+        {
+            if (c.hasAuthority) return c;
+        }
+        throw new Exception("FleetCB: no local PiecePlacementCursor");
+    }
+
+    // The same event a player's click on a book pickable raises. The cursor's
+    // handler instantiates the placeable and sends MsgBookPiecePicked, so the
+    // pick crosses the network exactly as it does for a real player.
+    public static string PickFromBook(string blockName)
+    {
+        PiecePlacementCursor cursor = LocalCursor();
+        PickableBlock pick = null;
+        foreach (PickableBlock pb in Resources.FindObjectsOfTypeAll<PickableBlock>())
+        {
+            if (pb.name == blockName + "_Pick" && pb.gameObject.scene.IsValid()) { pick = pb; break; }
+        }
+        if (pick == null) throw new Exception("FleetCB: no pickable " + blockName + "_Pick in scene");
+        GameEvent.GameEventManager.SendEvent(new GameEvent.PickBlockEvent(cursor.networkNumber, pick, null));
+        return pick.name;
+    }
+
+    // Place the picked (still unplaced) instance, with sendEvent so the
+    // placement itself is networked too.
+    public static string PlacePicked(string blockName, float x, float y)
+    {
+        foreach (PlaceableMetadata meta in UnityEngine.Object.FindObjectsOfType<PlaceableMetadata>())
+        {
+            Placeable p = meta.GetComponent<Placeable>();
+            if (p != null && !p.placed && meta.blockSerializeIndex >= 102 && p.name.StartsWith(blockName))
+            {
+                p.transform.position = new Vector3(x, y, 0f);
+                p.Place(LocalCursor().networkNumber, true, true);
+                return p.name;
+            }
+        }
+        throw new Exception("FleetCB: no unplaced " + blockName + " instance to place");
+    }
+
+    // ------------------------------------------------------------ party box
+
+    // Weight of every custom block in the party box's base rotation. 0 means
+    // "never offered". Reflection: the list is private, but its query is not.
+    public static string PartyWeightsJson()
+    {
+        PartyBox box = UnityEngine.Object.FindObjectOfType<PartyBox>();
+        if (box == null) throw new Exception("FleetCB: no PartyBox in scene (not in party mode?)");
+        object weights = box.GetType()
+            .GetField("baseBlockWeights", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+            .GetValue(box);
+        System.Reflection.MethodInfo query = weights.GetType().GetMethod("GetWeightForPlaceable");
+
+        Type reg = Registry();
+        var prefabs = (System.Collections.IEnumerable)reg.GetProperty("Prefabs").GetValue(null, null);
+        List<string> rows = new List<string>();
+        foreach (Placeable p in prefabs)
+        {
+            rows.Add("{\"name\":" + Q(p.name) + ",\"weight\":" + query.Invoke(weights, new object[] { p }) + "}");
+        }
+        return Arr(rows);
+    }
+
+    public static int PartyWeightOf(string blockName)
+    {
+        PartyBox box = UnityEngine.Object.FindObjectOfType<PartyBox>();
+        if (box == null) throw new Exception("FleetCB: no PartyBox in scene (not in party mode?)");
+        object weights = box.GetType()
+            .GetField("baseBlockWeights", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+            .GetValue(box);
+        System.Reflection.MethodInfo query = weights.GetType().GetMethod("GetWeightForPlaceable");
+
+        Type reg = Registry();
+        var prefabs = (System.Collections.IEnumerable)reg.GetProperty("Prefabs").GetValue(null, null);
+        foreach (Placeable p in prefabs)
+        {
+            if (p.name == blockName) return (int)query.Invoke(weights, new object[] { p });
+        }
+        throw new Exception("FleetCB: no custom block named " + blockName);
+    }
+
+    public static int SetCustomFrequency(string blockName, int freq)
+    {
+        Type reg = Registry();
+        var prefabs = (System.Collections.IEnumerable)reg.GetProperty("Prefabs").GetValue(null, null);
+        foreach (Placeable p in prefabs)
+        {
+            if (p.name == blockName)
+            {
+                int idx = p.GetComponent<PlaceableMetadata>().blockSerializeIndex;
+                GameSettings gs = GameSettings.GetInstance();
+                // both layers, like the tablet UI: the live filter AND the
+                // ruleset preset that level entry re-reads the filter from
+                gs.SetBlockFrequency(idx, freq);
+                GameRulePreset.BlockData data = gs.DefaultRuleset.Blocks[idx];
+                data.Frequency = freq;
+                gs.DefaultRuleset.Blocks[idx] = data;
+                return gs.GetBlockFrequency(idx);
+            }
+        }
+        throw new Exception("FleetCB: no custom block named " + blockName);
     }
 
     static QuickSaver Saver()
