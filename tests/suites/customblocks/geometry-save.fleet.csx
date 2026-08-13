@@ -4,10 +4,9 @@
 
 // Farm ships no placeable geometry, so this loads a minimal fixture level
 // (two 1x1 boxes) through the arena path — the pieces arrive during level
-// setup, exactly like a custom level's own geometry. This is the INTENDED-
-// behavior pin for fixing review finding #4: the mod's
-// MemorizeInitialLevelPlaceables postfix empties the initial-piece list the
-// game's moved-geometry save records are built from.
+// setup, exactly like a custom level's own geometry. Guards review finding
+// #4: the mod's MemorizeInitialLevelPlaceables postfix must drop only its
+// own prefab clones, never the level's initial-piece list.
 
 // treehouse re-entry noise on a NetTest host: the custom level portals poke
 // destroyed network views while the lobby resets (see the fleet knowledge notes)
@@ -48,8 +47,7 @@ await Task.Delay(2000);
 string restoredX = (await Host.EvalAsync($"FleetCB.LevelPieceX(\"{piece}\")")).Trim('"');
 await GoldenOn("level piece position after reload", Host,
     $"FleetCB.LevelPieceX(\"{piece}\")");
-// INTENDED — review finding #4 predicts this fails today
-Check("moved level geometry persisted [KNOWN DEFECT]", restoredX == movedX,
+Check("moved level geometry persisted", restoredX == movedX,
     $"moved to x={movedX}, after reload x={restoredX}");
 
 Step("back to treehouse");

@@ -13,7 +13,7 @@ using UnityEngine;
 
 public static class FleetCB
 {
-    public const string Version = "1.18";
+    public const string Version = "1.22";
 
     static Type Registry()
     {
@@ -358,6 +358,9 @@ public static class FleetCB
             if (!p.placed) continue;
             if (p.name.Contains("Start") || p.name.Contains("Goal")) continue;
             p.transform.position += new Vector3(dx, 0f, 0f);
+            // a real player move (pick + place) refreshes OriginalPosition,
+            // which is what the <moved>-record comparison actually reads
+            p.OriginalPosition = p.transform.position;
             Physics2D.SyncTransforms();
             return p.name;
         }
@@ -492,6 +495,25 @@ public static class FleetCB
             if (p != null && p.placed && p.name.StartsWith(namePrefix)) return p;
         }
         throw new Exception("FleetCB: no placed instance named " + namePrefix);
+    }
+
+    // Teleport the character INTO a placed block, wherever it currently is —
+    // rolling blocks leave the cell they were placed in, and a solid-on-solid
+    // approach just pushes the character away without any trigger overlap.
+    public static bool TeleportIntoPlaced(string namePrefix, float dy)
+    {
+        Placeable p = PlacedInstance(namePrefix);
+        Vector3 pos = p.transform.position;
+        return Fleet.PlaceCharacter(pos.x, pos.y + dy);
+    }
+
+    // Remove a placed block so it cannot contaminate later steps (a ChickenRoll
+    // barrel keeps rolling forever and camps the respawn point).
+    public static bool DestroyPlaced(string namePrefix)
+    {
+        Placeable p = PlacedInstance(namePrefix);
+        UnityEngine.Object.Destroy(p.gameObject);
+        return true;
     }
 
     public static string BlockPos(string namePrefix)
@@ -699,5 +721,39 @@ public static class FleetCB
     {
         string xml = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(b64));
         return Saver().LoadXmlSnapshotFromString(xml);
+    }
+
+    // ------------------------------------------------------------ death watch
+    //
+    // Freeplay respawns are instant and LastDeath resets with them, so polling
+    // AnyCharacterDead races the respawn and randomly misses kills. Count
+    // PlayerKilledEvents instead — the authority client sends one for its own
+    // character on every KillCharacter, teleport-kill included.
+
+    public static int DeathCount = 0;
+    static object deathWatch;
+
+    public static void StartDeathWatch()
+    {
+        if (deathWatch == null)
+        {
+            FleetCBDeathListener w = new FleetCBDeathListener();
+            GameEvent.GameEventManager.ChangeListener<GameEvent.PlayerKilledEvent>(w, true);
+            deathWatch = w;
+        }
+        DeathCount = 0;
+    }
+
+    public static int DeathsSeen()
+    {
+        return DeathCount;
+    }
+}
+
+public class FleetCBDeathListener : GameEvent.IGameEventListener
+{
+    public void handleEvent(GameEvent.GameEvent e)
+    {
+        FleetCB.DeathCount = FleetCB.DeathCount + 1;
     }
 }

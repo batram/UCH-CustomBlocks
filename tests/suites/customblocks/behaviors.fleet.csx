@@ -84,18 +84,36 @@ Check("character became the pig-elephant", pigged,
 
 Step("ChickenRoll: kills on touch");
 await RequireOn("character alive before chicken roll", Host, "!Fleet.AnyCharacterDead()", 20);
+// freeplay respawn is instant, so a dead-flag poll races it — count kill
+// events instead. The barrel rolls LEFT from its cell, and approaching it
+// on foot is solid-on-solid (the character is pushed, triggers never
+// overlap), so teleport INTO the barrel wherever it currently is.
+await Host.DoAsync("FleetCB.StartDeathWatch();");
 await Host.EvalAsync("FleetCB.PlaceCustom(\"ChickenRoll\", -8f, -6f)");
-await Task.Delay(500);
-await Host.DoAsync("Fleet.PlaceCharacter(-8f, -5.9f);");
-bool rollKill = await Until(Host, "Fleet.AnyCharacterDead()", 10);
+bool rollKill = false;
+for (int attempt = 0; attempt < 3 && !rollKill; attempt++)
+{
+    await Host.DoAsync("FleetCB.TeleportIntoPlaced(\"ChickenRoll\", 0.1f);");
+    rollKill = await Until(Host, "FleetCB.DeathsSeen() > 0", 5);
+}
 Check("chicken roll killed the character", rollKill);
+// the barrel keeps rolling forever and would camp the respawn point,
+// killing the character out from under every later step
+await Host.DoAsync("FleetCB.DestroyPlaced(\"ChickenRoll\");");
 
 Step("Acid: kills on touch");
 await RequireOn("character alive before acid", Host, "!Fleet.AnyCharacterDead()", 20);
+await Host.DoAsync("FleetCB.StartDeathWatch();");
 await Host.EvalAsync("FleetCB.PlaceCustom(\"Acid\", -4f, -6f)");
 await Task.Delay(500);
-await Host.DoAsync("Fleet.PlaceCharacter(-4f, -5.9f);");
-bool acidKill = await Until(Host, "Fleet.AnyCharacterDead()", 10);
+// a teleport onto a still-respawning character silently fails to stick,
+// so retry the drop the same way the pig-button step does
+bool acidKill = false;
+for (int attempt = 0; attempt < 3 && !acidKill; attempt++)
+{
+    await Host.DoAsync("Fleet.PlaceCharacter(-4f, -5.9f);");
+    acidKill = await Until(Host, "FleetCB.DeathsSeen() > 0", 8);
+}
 Check("acid killed the character", acidKill);
 await RequireOn("character alive again", Host, "!Fleet.AnyCharacterDead()", 20);
 
