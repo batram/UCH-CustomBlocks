@@ -72,7 +72,6 @@ namespace CustomBlocks.Blocks
             Debug.Log("RCR Place this.Indicator_spr init " + this.Indicator_spr);
             this.Honey = placeable.transform.Find("GluePiece").GetComponent<HoneyPiece>();
             placeable.alwaysMovingSpriteLayer = true;
-            Placeable.AllPlaceables = new List<Placeable> { };
 
             return placeable;
         }

@@ -40,12 +40,7 @@ namespace CustomBlocks.Core.Patches
     {
         static void Prefix(PlaceableMetadataList __instance)
         {
-            if (PlaceableMetadataList.instance.allBlockPrefabs.Length != __instance.allBlockPrefabs.Length)
-            {
-                __instance.allBlockPrefabs = PlaceableMetadataList.instance.allBlockPrefabs;
-                __instance.nameToIndexMap = PlaceableMetadataList.instance.NameToIndexMap;
-                __instance.cachedBlockMap = PlaceableMetadataList.instance.CachedBlockMap;
-            }
+            MetadataListSync.Sync(__instance);
         }
     }
 
@@ -54,11 +49,28 @@ namespace CustomBlocks.Core.Patches
     {
         static void Prefix(PlaceableMetadataList __instance)
         {
-            if (PlaceableMetadataList.instance.allBlockPrefabs.Length != __instance.allBlockPrefabs.Length)
+            MetadataListSync.Sync(__instance);
+        }
+    }
+
+    // Non-singleton copies (level-scene lists) borrow the extended prefab
+    // arrays from the singleton. Guarded: the getters can run before the
+    // singleton's Awake (review finding #15).
+    static class MetadataListSync
+    {
+        internal static void Sync(PlaceableMetadataList target)
+        {
+            PlaceableMetadataList source = PlaceableMetadataList.instance;
+            if (source == null || target == null || source == target
+                || source.allBlockPrefabs == null || target.allBlockPrefabs == null)
             {
-                __instance.allBlockPrefabs = PlaceableMetadataList.instance.allBlockPrefabs;
-                __instance.nameToIndexMap = PlaceableMetadataList.instance.NameToIndexMap;
-                __instance.cachedBlockMap = PlaceableMetadataList.instance.CachedBlockMap;
+                return;
+            }
+            if (source.allBlockPrefabs.Length != target.allBlockPrefabs.Length)
+            {
+                target.allBlockPrefabs = source.allBlockPrefabs;
+                target.nameToIndexMap = source.NameToIndexMap;
+                target.cachedBlockMap = source.CachedBlockMap;
             }
         }
     }

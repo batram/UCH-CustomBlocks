@@ -135,7 +135,13 @@ namespace CustomBlocks.Core
                 placeable.gameObject.GetComponent<PlaceableMetadata>().blockSerializeIndex = SerializeIndex;
             }
 
+            // the hidden prefab and its sub-element placeables (GluePiece) must
+            // not linger in the global census
             Placeable.AllPlaceables.Remove(placeable);
+            foreach (Placeable child in placeable.GetComponentsInChildren<Placeable>(true))
+            {
+                Placeable.AllPlaceables.Remove(child);
+            }
 
             this.FixSprite(placeable.transform.Find("Sprite"));
             return placeable;

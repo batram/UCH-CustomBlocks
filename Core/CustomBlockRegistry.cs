@@ -57,6 +57,20 @@ namespace CustomBlocks.Core
                 Debug.LogError("CustomBlockRegistry: " + type + " is already registered");
                 return;
             }
+            if (string.IsNullOrEmpty(definition.Name))
+            {
+                Debug.LogError("CustomBlockRegistry: " + type + " has no Name - block not registered");
+                return;
+            }
+            foreach (CustomBlock existing in definitions)
+            {
+                if (existing.Name == definition.Name)
+                {
+                    Debug.LogError("CustomBlockRegistry: block name '" + definition.Name
+                        + "' already registered by " + existing.GetType() + " - block not registered");
+                    return;
+                }
+            }
 
             int id;
             if (!legacyIds.TryGetValue(definition.Name, out id))
@@ -161,14 +175,23 @@ namespace CustomBlocks.Core
                 prefabs.Add(definition.PlaceablePrefab);
             }
 
-            Placeable.AllPlaceables = new List<Placeable> { };
-
             slot = OriginalBlockCount;
             Array.Resize(ref ruleset.Blocks, OriginalBlockCount + prefabs.Count);
             foreach (Placeable prefab in prefabs)
             {
                 ruleset.Blocks[slot] = new GameRulePreset.BlockData(prefab);
                 slot += 1;
+            }
+
+            // register in the item filter explicitly instead of relying on
+            // buildItemFilter not having run yet (review finding #2)
+            GameSettings settings = GameSettings.GetInstance();
+            foreach (Placeable prefab in prefabs)
+            {
+                if (!settings.itemFilter.ContainsKey(prefab))
+                {
+                    settings.itemFilter.Add(prefab, new GameRulePreset.BlockData(prefab));
+                }
             }
         }
     }
