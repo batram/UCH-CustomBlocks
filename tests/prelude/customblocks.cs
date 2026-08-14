@@ -13,7 +13,7 @@ using UnityEngine;
 
 public static class FleetCB
 {
-    public const string Version = "1.27";
+    public const string Version = "1.28";
 
     static Type Registry()
     {
@@ -609,6 +609,25 @@ public static class FleetCB
             }
         }
         return false;
+    }
+
+    // Every placed RC pairing as "rx:<placeableID>=tx:<placeableID|none>",
+    // sorted — cross-peer agreement on this string proves the link (and its
+    // direction) synchronized, not just that some link exists locally.
+    public static string RCLinkJson()
+    {
+        List<string> rows = new List<string>();
+        foreach (Placeable p in UnityEngine.Object.FindObjectsOfType<Placeable>())
+        {
+            object rc = p.GetComponent("RCReceiver");
+            if (rc == null || !p.placed) continue;
+            object tx = rc.GetType().GetField("ConnectedTransmitter").GetValue(rc);
+            string txId = "none";
+            if (tx != null) txId = ((Placeable)tx).ID.ToString();
+            rows.Add(Q("rx:" + p.ID + "=tx:" + txId));
+        }
+        rows.Sort(StringComparer.Ordinal);
+        return Arr(rows);
     }
 
     // How many of the sampled spawn positions land near (x,y) — MultiStart's

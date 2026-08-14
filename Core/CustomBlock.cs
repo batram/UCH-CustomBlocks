@@ -151,6 +151,30 @@ namespace CustomBlocks.Core
         {
         }
 
+        // A CustomBlockNet message addressed to this block (by Placeable.ID)
+        // arrived — on every peer, including the one that sent it.
+        public virtual void OnNetworkEvent(MsgCustomBlockEvent e)
+        {
+        }
+
+        // The base Placeable component carrying the real networked ID; the
+        // CustomBlock component is itself a Placeable, so a plain
+        // GetComponent<Placeable>() is ambiguous.
+        public Placeable RealPlaceable
+        {
+            get
+            {
+                foreach (Placeable p in GetComponents<Placeable>())
+                {
+                    if (!(p is CustomBlock))
+                    {
+                        return p;
+                    }
+                }
+                return this;
+            }
+        }
+
         public static Texture2D LoadTexture(string path)
         {
             byte[] data = File.ReadAllBytes(path);

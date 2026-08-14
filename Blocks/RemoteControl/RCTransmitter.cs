@@ -77,6 +77,12 @@ namespace CustomBlocks.Blocks
 
             placeable.gameObject.transform.Rotate(0, 0, 90f, Space.Self);
 
+            // the boxing-glove base insists on a mounting surface; a remote
+            // control transmitter places anywhere (parity with the receiver)
+            foreach (CheckColliding cc in placeable.GetComponentsInChildren<CheckColliding>(true))
+            {
+                cc.Required = false;
+            }
 
             return placeable;
         }
@@ -135,29 +141,38 @@ namespace CustomBlocks.Blocks
             }
         }
 
+        // frames between link announcements while unpaired, so the host does
+        // not spam the channel every FixedUpdate until the loopback lands
+        int linkAnnounceCooldown;
+
         public void ConnectToReceiver()
         {
-            //if (this.NetSurrogate == null || this.NetSurrogate.hasAuthority)
+            if (this.ConnectedReceiver != null)
             {
-                if (this.ConnectedReceiver != null)
-                {
-                    return;
-                }
+                return;
+            }
+            // host-authoritative: only the server picks pairings (and their
+            // color); every peer applies the relayed Link event identically
+            if (!UnityEngine.Networking.NetworkServer.active)
+            {
+                return;
+            }
+            if (linkAnnounceCooldown > 0)
+            {
+                linkAnnounceCooldown -= 1;
+                return;
+            }
 
-                foreach (RCReceiver receiver in GameObject.FindObjectsOfType<RCReceiver>())
+            foreach (RCReceiver receiver in GameObject.FindObjectsOfType<RCReceiver>())
+            {
+                if (receiver != null && receiver.ConnectedTransmitter == null && receiver.RealPlaceable.Placed)
                 {
-                    if (receiver != null && receiver.ConnectedTransmitter == null && receiver.gameObject.GetComponent<Placeable>().Placed)
-                    {
-                        this.ConnectedReceiver = receiver;
-                        receiver.ConnectedTransmitter = this;
-
-                        //TODO: Use preset of colors and sync connection color via network
-                        Color color = new Color(UnityEngine.Random.Range(0f, 1f), UnityEngine.Random.Range(0f, 1f), UnityEngine.Random.Range(0f, 1f));
-                        Debug.Log("Place color " + color);
-                        this.SetConnectionColor(color);
-                        receiver.SetConnectionColor(color);
-                        break;
-                    }
+                    Color color = new Color(UnityEngine.Random.Range(0f, 1f), UnityEngine.Random.Range(0f, 1f), UnityEngine.Random.Range(0f, 1f));
+                    CustomBlockNet.Send(RCReceiver.NetActionLink,
+                        this.RealPlaceable.ID, receiver.RealPlaceable.ID,
+                        new Vector3(color.r, color.g, color.b));
+                    linkAnnounceCooldown = 50;
+                    break;
                 }
             }
         }
@@ -173,7 +188,15 @@ namespace CustomBlocks.Blocks
                 RCTransmitter rct = __instance.gameObject.GetComponent<RCTransmitter>();
                 if (rct && rct.ConnectedReceiver && rct.ConnectedReceiver.AttachedTo)
                 {
-                    rct.ConnectedReceiver.Trigger();
+                    // host-authoritative: physics fires the punch on every
+                    // peer, but only the server turns it into the networked
+                    // trigger everyone (itself included) applies
+                    if (UnityEngine.Networking.NetworkServer.active)
+                    {
+                        CustomBlockNet.Send(RCReceiver.NetActionTrigger,
+                            rct.RealPlaceable.ID, rct.ConnectedReceiver.RealPlaceable.ID,
+                            UnityEngine.Vector3.zero);
+                    }
                     __instance.StartCoroutine(Reset(__instance));
                 }
             }

@@ -28,6 +28,10 @@ namespace CustomBlocks.Blocks
             }
         }
 
+        // CustomBlockNet action codes for the RC pair
+        public const short NetActionLink = 1;
+        public const short NetActionTrigger = 2;
+
         public Placeable AttachedTo;
         public float og_interval;
         public Placeable ConnectedTransmitter;
@@ -111,6 +115,46 @@ namespace CustomBlocks.Blocks
             if (this.Indicator_spr)
             {
                 this.Indicator_spr.material.color = new Color(0, 0, 0, 1);
+            }
+        }
+
+        // Link/trigger arrive over CustomBlockNet on every peer, so pairing,
+        // indicator colors and fired effects agree across the lobby.
+        public override void OnNetworkEvent(Core.MsgCustomBlockEvent e)
+        {
+            if (e.Action == NetActionLink)
+            {
+                // prefer the PLACED transmitter with that ID: reload ghosts
+                // share IDs with the live blocks
+                RCTransmitter tx = null;
+                foreach (RCTransmitter t in GameObject.FindObjectsOfType<RCTransmitter>())
+                {
+                    if (t != null && t.RealPlaceable.ID == e.SourceID)
+                    {
+                        if (t.RealPlaceable.Placed)
+                        {
+                            tx = t;
+                            break;
+                        }
+                        if (tx == null)
+                        {
+                            tx = t;
+                        }
+                    }
+                }
+                if (tx == null)
+                {
+                    return;
+                }
+                this.ConnectedTransmitter = tx.RealPlaceable;
+                tx.ConnectedReceiver = this;
+                Color color = new Color(e.Payload.x, e.Payload.y, e.Payload.z);
+                this.SetConnectionColor(color);
+                tx.SetConnectionColor(color);
+            }
+            else if (e.Action == NetActionTrigger)
+            {
+                Trigger();
             }
         }
 
