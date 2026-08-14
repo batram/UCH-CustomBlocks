@@ -88,6 +88,18 @@ namespace CustomBlocks.Core
             Dispatch(msg.ReadMessage<MsgCustomBlockEvent>());
         }
 
+        // Channel-wide handlers for actions that do not belong to a single
+        // CustomBlock type (e.g. background-ness on a vanilla block). Global
+        // action codes are NEGATIVE; positive codes go to the target block's
+        // OnNetworkEvent.
+        static readonly System.Collections.Generic.Dictionary<short, System.Action<MsgCustomBlockEvent>> globalHandlers
+            = new System.Collections.Generic.Dictionary<short, System.Action<MsgCustomBlockEvent>>();
+
+        public static void RegisterGlobalAction(short action, System.Action<MsgCustomBlockEvent> handler)
+        {
+            globalHandlers[action] = handler;
+        }
+
         static void Dispatch(MsgCustomBlockEvent e)
         {
             if (e == null)
@@ -100,6 +112,14 @@ namespace CustomBlocks.Core
                     + e.Version + " (mine is " + MsgCustomBlockEvent.ProtocolVersion + ")");
                 return;
             }
+
+            System.Action<MsgCustomBlockEvent> handler;
+            if (e.Action < 0 && globalHandlers.TryGetValue(e.Action, out handler))
+            {
+                handler(e);
+                return;
+            }
+
             // the affected block gets the event; fall back to the source
             // block for self-targeted actions
             CustomBlock cb = FindBlock(e.TargetID) ?? FindBlock(e.SourceID);
@@ -107,6 +127,33 @@ namespace CustomBlocks.Core
             {
                 cb.OnNetworkEvent(e);
             }
+        }
+
+        // Any placeable by networked ID, preferring the placed copy (reload
+        // ghosts share IDs with live blocks). For global actions that also
+        // target vanilla blocks.
+        public static Placeable FindPlaceable(int placeableID)
+        {
+            if (placeableID == -1)
+            {
+                return null;
+            }
+            Placeable fallback = null;
+            foreach (Placeable p in Placeable.AllPlaceables)
+            {
+                if (p != null && p.ID == placeableID)
+                {
+                    if (p.placed)
+                    {
+                        return p;
+                    }
+                    if (fallback == null)
+                    {
+                        fallback = p;
+                    }
+                }
+            }
+            return fallback;
         }
 
         static CustomBlock FindBlock(int placeableID)

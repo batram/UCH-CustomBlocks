@@ -20,6 +20,9 @@ namespace CustomBlocks
         public const int magicBackgroundBlockNumber = 9000;
         public const int magicCustomBlockNumber = 5000;
 
+        // CustomBlockNet global action codes (negative = channel-wide)
+        public const short netActionBackground = -1;
+
         public static int selectedLayer = 0;
         public static bool highlightSelectedLayer = false;
         public static string defaultBackgroundLayer = "Background 1";
@@ -52,6 +55,8 @@ namespace CustomBlocks
             {
                 //TODO: Enable Background and individual CustomBlocks via config
                 new Harmony("CustomBlocks").PatchAll();
+
+                Backgrounds.Patches.BackgroundNetSync.Register();
 
                 // built-in blocks register through the same public API other mods use
                 CustomBlockRegistry.Register<OneRoundWood>();
