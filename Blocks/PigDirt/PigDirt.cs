@@ -38,10 +38,20 @@ namespace CustomBlocks.Blocks
 
         void Update()
         {
-            if (this.GetComponent<Coin>() != null && this.GetComponent<Coin>().Placed)
+            Coin coin = this.GetComponent<Coin>();
+            if (coin != null && coin.Placed)
             {
                 //Keep Trigger Collider active to smear dirt and add flies
-                this.transform.Find("TriggerCollider").GetComponent<BoxCollider2D>().enabled = true;
+                // (children can already be gone during scene teardown)
+                var trigger = this.transform.Find("TriggerCollider");
+                if (trigger != null)
+                {
+                    var box = trigger.GetComponent<BoxCollider2D>();
+                    if (box != null)
+                    {
+                        box.enabled = true;
+                    }
+                }
             }
         }
 

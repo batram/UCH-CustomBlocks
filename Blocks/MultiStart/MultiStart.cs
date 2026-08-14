@@ -39,6 +39,9 @@ namespace CustomBlocks.Blocks
             Placeable placeable = base.CreatePlaceablePrefab();
             placeable.gameObject.AddComponent<MultiStart>();
             placeable.transform.Find("StartZone").GetComponentInChildren<Text>().text = "MultiStart";
+            // the StartPlank base is level furniture and ships IsSaveable=false;
+            // a player-placed MultiStart must survive save/load
+            placeable.IsSaveable = true;
 
             return placeable;
         }

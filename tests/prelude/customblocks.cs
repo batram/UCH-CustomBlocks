@@ -13,7 +13,7 @@ using UnityEngine;
 
 public static class FleetCB
 {
-    public const string Version = "1.26";
+    public const string Version = "1.27";
 
     static Type Registry()
     {
@@ -286,6 +286,24 @@ public static class FleetCB
             if (p != null && p.placed && p.name.StartsWith(namePrefix)) return true;
         }
         return false;
+    }
+
+    // Diagnostic census: every custom-block placeable including hidden/marked
+    // ones, with enough state to tell "never restored" from "destroyed after".
+    public static string DiagAllCustom()
+    {
+        List<string> rows = new List<string>();
+        foreach (Placeable p in Resources.FindObjectsOfTypeAll<Placeable>())
+        {
+            if (!p.gameObject.scene.IsValid()) continue;
+            PlaceableMetadata meta = p.GetComponent<PlaceableMetadata>();
+            if (meta == null || meta.blockSerializeIndex < 102) continue;
+            rows.Add(Q(p.name + ":" + meta.blockSerializeIndex + ":" + (p.placed ? "placed" : "unplaced")
+                + ":hf=" + p.gameObject.hideFlags + ":marked=" + p.MarkedForDestruction
+                + ":pos=" + p.transform.position.x.ToString("F0") + "," + p.transform.position.y.ToString("F0")));
+        }
+        rows.Sort(StringComparer.Ordinal);
+        return Arr(rows);
     }
 
     // ------------------------------------------------- book pick (real path)

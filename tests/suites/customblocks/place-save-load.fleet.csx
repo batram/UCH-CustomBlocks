@@ -33,10 +33,14 @@ string[] blocks =
     "OneRoundWood", "ReCoin", "MultiStart", "RCReceiver", "RCTransmitter",
     "FloatyCloud", "PigFarmButton", "PigDirt", "ChickenRoll", "Acid",
 ];
+// on the ground (Farm floor is y=-6, verified from about x=-30..0):
+// glue-based blocks (RCReceiver, Acid) must have an attach surface, or the
+// game's own attachment validation culls them on reload — floating glue is
+// not a valid saved state
 for (int i = 0; i < blocks.Length; i++)
 {
     string placed = await Host.EvalAsync(
-        $"FleetCB.PlaceCustom(\"{blocks[i]}\", {(-9 + i * 2)}f, 4f)");
+        $"FleetCB.PlaceCustom(\"{blocks[i]}\", {(-25 + i * 2)}f, -6f)");
     // the real Instantiate path names clones "<prefab>(Clone)"
     Check($"placed {blocks[i]}", placed.Trim('"').StartsWith(blocks[i]), placed);
 }

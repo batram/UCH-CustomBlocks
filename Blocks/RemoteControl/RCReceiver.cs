@@ -73,6 +73,15 @@ namespace CustomBlocks.Blocks
             this.Honey = placeable.transform.Find("GluePiece").GetComponent<HoneyPiece>();
             placeable.alwaysMovingSpriteLayer = true;
 
+            // attaching to a device is what a receiver is FOR, but it must not
+            // be a survival requirement: the game's attachment validation
+            // culls restored glue that isn't stuck to an attachableWithGlue
+            // placeable, deleting a saved receiver on level entry
+            foreach (CheckColliding cc in placeable.GetComponentsInChildren<CheckColliding>(true))
+            {
+                cc.Required = false;
+            }
+
             return placeable;
         }
 

@@ -60,6 +60,15 @@ namespace CustomBlocks.Blocks
 
             BaseSprite.GetComponent<SpriteRenderer>().sprite = sprite;
 
+            // acid is a hazard wearing a Glue costume, not an attachment: the
+            // base's required glue colliders would make the game's attachment
+            // validation cull a restored acid that isn't stuck to an
+            // attachableWithGlue placeable (the floor is not one)
+            foreach (CheckColliding cc in placeable.GetComponentsInChildren<CheckColliding>(true))
+            {
+                cc.Required = false;
+            }
+
             return placeable;
         }
 
@@ -92,22 +101,14 @@ namespace CustomBlocks.Blocks
             this.placed = true;
 
             // the glue colliders live on the GluePiece child, so trigger
-            // callbacks never reach this component without its own trigger
+            // callbacks never reach this component without its own trigger;
+            // cover the block's own cell — the sprite hangs off toward the
+            // glued surface and its bounds miss characters standing on it
             if (GetComponent<BoxCollider2D>() == null)
             {
-                var glue_spr = placeable.transform.Find("GluePiece/Sprite");
                 BoxCollider2D trigger = gameObject.AddComponent<BoxCollider2D>();
                 trigger.isTrigger = true;
-                if (glue_spr != null)
-                {
-                    SpriteRenderer sr = glue_spr.GetComponent<SpriteRenderer>();
-                    trigger.offset = transform.InverseTransformPoint(sr.bounds.center);
-                    trigger.size = sr.bounds.size;
-                }
-                else
-                {
-                    trigger.size = new Vector2(1f, 1f);
-                }
+                trigger.size = new Vector2(1f, 1f);
             }
         }
 

@@ -99,12 +99,20 @@ namespace CustomBlocks.Blocks
 
         public void SetConnectionColor(Color c)
         {
-            this.transform.Find("SpriteHolder/Offset/Glove/Indicator").GetComponent<SpriteRenderer>().material.color = c;
+            var spr = this.transform.Find("SpriteHolder/Offset/Glove/Indicator")?.GetComponent<SpriteRenderer>();
+            if (spr != null)
+            {
+                spr.material.color = c;
+            }
         }
 
         public void ResetConnectionColor()
         {
-            this.transform.Find("SpriteHolder/Offset/Glove/Indicator").GetComponent<SpriteRenderer>().material.color = new Color(0, 0, 0, 1);
+            var spr = this.transform.Find("SpriteHolder/Offset/Glove/Indicator")?.GetComponent<SpriteRenderer>();
+            if (spr != null)
+            {
+                spr.material.color = new Color(0, 0, 0, 1);
+            }
         }
 
 
