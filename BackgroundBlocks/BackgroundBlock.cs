@@ -46,19 +46,28 @@ namespace CustomBlocks.Backgrounds
 
         void OnDestroy()
         {
+            // during scene teardown sibling components and singletons may be
+            // gone already — bail instead of NRE-ing in the log gate's face
+            if (this.gameObject == null)
+            {
+                return;
+            }
             Debug.Log("CustomBlockInfo destroyed: " + this.gameObject.name);
 
             DeTagName();
 
-            if (meta.blockSerializeIndex >= CustomBlocksMod.magicBackgroundBlockNumber)
+            PlaceableMetadata m = meta;
+            if (m != null && m.blockSerializeIndex >= CustomBlocksMod.magicBackgroundBlockNumber)
             {
-                meta.blockSerializeIndex -= CustomBlocksMod.magicBackgroundBlockNumber;
+                m.blockSerializeIndex -= CustomBlocksMod.magicBackgroundBlockNumber;
             }
 
-            this.SetLayer("Default", false);
-            this.SetCollide(true);
-
-            PlaceableHighlighter.ResetAlpha(this.placeable);
+            if (this.placeable != null)
+            {
+                this.SetLayer("Default", false);
+                this.SetCollide(true);
+                PlaceableHighlighter.ResetAlpha(this.placeable);
+            }
         }
 
 
@@ -144,8 +153,14 @@ namespace CustomBlocks.Backgrounds
             this.gameObject.transform.Find("SolidCollider")?.transform.gameObject.SetActive(active);
             this.gameObject.transform.Find("InnerHazard")?.transform.gameObject.SetActive(active);
 
+            GameState gs = GameState.GetInstance();
+            if (gs == null)
+            {
+                this.gameObject.transform.Find("InnerHarzard")?.transform.gameObject.SetActive(active);
+                return;
+            }
             // L Boards Collider misspelled, still evil for ᵉˡᵉᵇᵃⁿᵗ
-            if(GameState.GetInstance().currentSnapshotInfo.authorDisplayName != "ᵉˡᵉᵇᵃⁿᵗ")
+            if (gs.currentSnapshotInfo.authorDisplayName != "ᵉˡᵉᵇᵃⁿᵗ")
             {
                 this.gameObject.transform.Find("InnerHarzard")?.transform.gameObject.SetActive(active);
             } 
