@@ -42,6 +42,21 @@ string blocks = await Host.EvalAsync("FleetCB.ScoreBlocksJson()");
 Check("suicide point kept its type",blocks.Contains("\\\"type\\\":\\\"suicide\\\"") || blocks.Contains("\"type\":\"suicide\""), "");
 Check("no smuggled pig-dirt point", !blocks.Contains("suicideValue\":-1") && !blocks.Contains("suicideValue\\\":-1"), "");
 
+Step("pig-dirt penalty actually deducts");
+// vanilla tally ignores rounds whose net is negative (review finding #14):
+// seed +1 coin, tally, then a lone pig-dirt penalty, tally again — the
+// second tally must LOWER the total, not leave it untouched
+await Host.EvalAsync("FleetCB.AwardCoin(1)");
+await Task.Delay(1500);
+await Host.EvalAsync("FleetCB.TallyNow()");
+string totalsAfterCoin = (await Host.EvalAsync("FleetCB.ScoreTotalsJson()")).Trim('"');
+await Host.EvalAsync("FleetCB.AwardPigDirt(1)");
+await Task.Delay(1500);
+await Host.EvalAsync("FleetCB.TallyNow()");
+string totalsAfterDirt = (await Host.EvalAsync("FleetCB.ScoreTotalsJson()")).Trim('"');
+Check("penalty lowered the total", totalsAfterCoin != totalsAfterDirt,
+    $"{totalsAfterCoin} -> {totalsAfterDirt}");
+
 Step("back to treehouse");
 await Host.DoAsync("Fleet.ReturnToTreehouse();");
 await UntilAll("Fleet.Scene() == \"TreeHouseLobby\"", 90);

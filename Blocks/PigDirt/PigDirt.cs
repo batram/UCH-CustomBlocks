@@ -141,6 +141,72 @@ namespace CustomBlocks.Blocks
         }
 
 
+        // Vanilla TallyPointBlockAllPlayers only applies a round's net when it
+        // is POSITIVE, so a round containing nothing but a pig-dirt penalty
+        // never deducts (review finding #14). When penalty blocks are in the
+        // round, apply negative nets too (handicap-scaled, floored at zero).
+        [HarmonyPatch(typeof(ScoreKeeper), nameof(ScoreKeeper.TallyPointBlockAllPlayers))]
+        static class TallyNegativeNetPatch
+        {
+            static void Prefix(ScoreKeeper __instance, out Dictionary<int, int> __state)
+            {
+                __state = null;
+                bool hasPenalty = false;
+                foreach (PointBlock pb in __instance.newPointBlocks)
+                {
+                    if (pb.suicideValue == -1)
+                    {
+                        hasPenalty = true;
+                        break;
+                    }
+                }
+                if (!hasPenalty)
+                {
+                    return;
+                }
+                __state = new Dictionary<int, int>();
+                foreach (PointBlock pb in __instance.newPointBlocks)
+                {
+                    int current;
+                    __state.TryGetValue(pb.playerNumber, out current);
+                    __state[pb.playerNumber] = current + pb.pointValue;
+                }
+            }
+
+            static void Postfix(ScoreKeeper __instance, Dictionary<int, int> __state)
+            {
+                if (__state == null)
+                {
+                    return;
+                }
+                foreach (KeyValuePair<int, int> net in __state)
+                {
+                    if (net.Value >= 0)
+                    {
+                        continue; // vanilla applied the positive nets
+                    }
+                    foreach (GamePlayer gp in new List<GamePlayer>(__instance.playerTotal.Keys))
+                    {
+                        if (gp != null && gp.networkNumber == net.Key && __instance.playerTotal.ContainsKey(gp))
+                        {
+                            ScoreKeeper.scoreInfo info = __instance.playerTotal[gp];
+                            if (info.disconnected)
+                            {
+                                break;
+                            }
+                            info.totalScore += (int)((float)net.Value * ((float)gp.Handicap / 100f));
+                            if (info.totalScore < 0)
+                            {
+                                info.totalScore = 0;
+                            }
+                            __instance.playerTotal[gp] = info;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
         [HarmonyPatch(typeof(GraphScoreBoard), nameof(GraphScoreBoard.GetPreinstantiatedPointBlock))]
         static class GraphScoreBoardGetPreinstantiatedPointBlockPatch
         {

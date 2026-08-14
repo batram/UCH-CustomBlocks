@@ -13,7 +13,7 @@ using UnityEngine;
 
 public static class FleetCB
 {
-    public const string Version = "1.28";
+    public const string Version = "1.29";
 
     static Type Registry()
     {
@@ -663,6 +663,58 @@ public static class FleetCB
         msg.AlwaysAward = false;
         UnityEngine.Networking.NetworkManager.singleton.client.Send(NetMsgTypes.PointAwarded, msg);
         return "sent";
+    }
+
+    // Per-player running totals from the scorekeeper, sorted by player number.
+    public static string ScoreTotalsJson()
+    {
+        ScoreKeeper keeper = ScoreKeeper.Instance;
+        if (keeper == null) throw new Exception("FleetCB: no ScoreKeeper");
+        var totals = (System.Collections.IDictionary)typeof(ScoreKeeper)
+            .GetField("playerTotal", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance)
+            .GetValue(keeper);
+        List<string> rows = new List<string>();
+        foreach (System.Collections.DictionaryEntry e in totals)
+        {
+            GamePlayer gp = e.Key as GamePlayer;
+            if (gp == null) continue;
+            object info = e.Value;
+            object score = info.GetType().GetField("totalScore").GetValue(info);
+            rows.Add(Q("p" + gp.networkNumber + "=" + score));
+        }
+        rows.Sort(StringComparer.Ordinal);
+        return Arr(rows);
+    }
+
+    // A pig-dirt penalty point, exactly as PigDirt's coin patch sends it:
+    // PointAwarded with the player number pushed into the mod's magic range.
+    public static string AwardPigDirt(int playerNumber)
+    {
+        MsgPointAwarded msg = new MsgPointAwarded();
+        msg.PlayerNumber = playerNumber + 7000;
+        msg.PointType = PointBlock.pointBlockType.coin;
+        msg.AlwaysAward = false;
+        UnityEngine.Networking.NetworkManager.singleton.client.Send(NetMsgTypes.PointAwarded, msg);
+        return "sent";
+    }
+
+    // A plain coin point through the same receive path.
+    public static string AwardCoin(int playerNumber)
+    {
+        MsgPointAwarded msg = new MsgPointAwarded();
+        msg.PlayerNumber = playerNumber;
+        msg.PointType = PointBlock.pointBlockType.coin;
+        msg.AlwaysAward = false;
+        UnityEngine.Networking.NetworkManager.singleton.client.Send(NetMsgTypes.PointAwarded, msg);
+        return "sent";
+    }
+
+    public static string TallyNow()
+    {
+        ScoreKeeper keeper = ScoreKeeper.Instance;
+        if (keeper == null) throw new Exception("FleetCB: no ScoreKeeper");
+        keeper.TallyPointBlockAllPlayers(false);
+        return "tallied";
     }
 
     public static string ScoreBlocksJson()
