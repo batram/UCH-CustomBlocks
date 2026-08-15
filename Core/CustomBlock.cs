@@ -28,6 +28,21 @@ namespace CustomBlocks.Core
         public virtual Rect SpriteRect { get { return new Rect(0, 0, 54, 54); } }
         public virtual Vector2 SpritePivot { get { return Vector2.zero; } }
 
+        // How the block presents on the Block Probability tablet page.
+        //
+        // Both default to automatic, which is right for most blocks: the tile
+        // is scaled so the art reads at the same size as the vanilla block it
+        // is based on, then centred in its 300x300 tile. Auto-fit means a block
+        // whose artwork changes never needs these retuned, and blocks from
+        // other mods get sensible sizing without knowing any of this exists.
+        //
+        // Override when a block should deliberately differ. Note that some
+        // vanilla blocks are not themselves centred — Glue sits high in its
+        // tile — so a glue-based block that should sit exactly where vanilla
+        // glue sits wants TabletOffset = Vector2.zero rather than auto.
+        public virtual float? TabletScale { get { return null; } }
+        public virtual Vector2? TabletOffset { get { return null; } }
+
         private Sprite sp;
         public Sprite sprite
         {

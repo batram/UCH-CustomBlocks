@@ -488,74 +488,74 @@
     "probStep": 5
   },
   {
-    "art": "01_1x1 Box_Pick(Clone)",
+    "art": "OneRoundWood_Pick(Clone)",
     "artSprites": 1,
     "pick": "OneRoundWood_Pick",
-    "probOffset": "0.04;-0.19",
-    "probScale": "1",
+    "probOffset": "-0.02;0.01",
+    "probScale": "1.06",
     "probStep": 7
   },
   {
-    "art": "Coin_Pick(Clone)",
+    "art": "ReCoin_Pick(Clone)",
     "artSprites": 1,
     "pick": "ReCoin_Pick",
-    "probOffset": "0;0",
+    "probOffset": "-0.05;-0.02",
     "probScale": "1",
     "probStep": 7
   },
   {
-    "art": "Glue_Pick(Clone)",
+    "art": "RCReceiver_Pick(Clone)",
     "artSprites": 3,
     "pick": "RCReceiver_Pick",
-    "probOffset": "0;0",
+    "probOffset": "-0.24;0.33",
     "probScale": "1",
     "probStep": 7
   },
   {
-    "art": "BoxingGlove_Pick(Clone)",
+    "art": "RCTransmitter_Pick(Clone)",
     "artSprites": 4,
     "pick": "RCTransmitter_Pick",
-    "probOffset": "-0.68;-0.08",
-    "probScale": "1",
+    "probOffset": "-1.1;-0.6",
+    "probScale": "1.12",
     "probStep": 5
   },
   {
-    "art": "05_Plank5_Pick(Clone)",
+    "art": "FloatyCloud_Pick(Clone)",
     "artSprites": 1,
     "pick": "FloatyCloud_Pick",
-    "probOffset": "-0.02;-0.14",
-    "probScale": "0.49",
+    "probOffset": "-0.01;-0.01",
+    "probScale": "0.33",
     "probStep": 7
   },
   {
-    "art": "01_1x1 Box_Pick(Clone)",
+    "art": "PigFarmButton_Pick(Clone)",
     "artSprites": 1,
     "pick": "PigFarmButton_Pick",
-    "probOffset": "0.04;-0.19",
-    "probScale": "1",
+    "probOffset": "-0.02;0.01",
+    "probScale": "1.06",
     "probStep": 7
   },
   {
-    "art": "Coin_Pick(Clone)",
+    "art": "PigDirt_Pick(Clone)",
     "artSprites": 1,
     "pick": "PigDirt_Pick",
-    "probOffset": "0;0",
-    "probScale": "1",
+    "probOffset": "-0.69;-0.66",
+    "probScale": "2.11",
     "probStep": 7
   },
   {
-    "art": "07_Barrel_Pick(Clone)",
+    "art": "ChickenRoll_Pick(Clone)",
     "artSprites": 1,
     "pick": "ChickenRoll_Pick",
-    "probOffset": "0.03;0.24",
-    "probScale": "0.87",
+    "probOffset": "-0.01;0.02",
+    "probScale": "0.77",
     "probStep": 7
   },
   {
-    "art": "Glue_Pick(Clone)",
+    "art": "Acid_Pick(Clone)",
     "artSprites": 3,
     "pick": "Acid_Pick",
-    "probOffset": "0;0",
+    "probOffset": "-0.21;0.33",
     "probScale": "1",
     "probStep": 7
   }
