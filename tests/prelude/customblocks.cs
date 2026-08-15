@@ -13,7 +13,7 @@ using UnityEngine;
 
 public static class FleetCB
 {
-    public const string Version = "1.32";
+    public const string Version = "1.33";
 
     // Transform.Find does NOT recurse — it walks direct children only. The
     // book's page arrows are nested, so Find("Next") returned null for every
@@ -400,8 +400,12 @@ public static class FleetCB
                 + ",\"artSprites\":" + (tb.ArtSprites == null ? 0 : tb.ArtSprites.Length)
                 + ",\"probScale\":" + Q(F(pk.BlockProbabilityScale))
                 + ",\"probOffset\":" + Q(F(pk.BlockProbabilityOffset.x) + ";" + F(pk.BlockProbabilityOffset.y))
-                + ",\"probStep\":" + tb.currentProbStep
                 + "}");
+            // Deliberately NOT currentProbStep. It is the block's frequency,
+            // which any player can change from this very screen and which
+            // persists, so goldening it makes the suite fail on somebody having
+            // clicked a block down to 0% — as it did. A golden may only record
+            // state the mod controls.
         }
         return Arr(rows);
     }

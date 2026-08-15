@@ -219,6 +219,13 @@ sessions. The rules, and why:
   base block's artwork. `TabletVisualJson()` records what is actually under
   `spriteHolder`. When adding a golden, ask which side of the boundary it sits
   on.
+- **Only golden state the mod controls.** `TabletVisualJson` briefly recorded
+  each tile's `currentProbStep` — the block's frequency, which any player can
+  change from that very screen and which persists in game settings. The suite
+  then went red because somebody had clicked two blocks down to 0%. Game data
+  is junctioned into the fleet's shadow install, so hand-testing in the normal
+  game reaches the goldens. Ask of every recorded field: could a player change
+  this without touching the mod?
 - **Farm is not the only level.** The whole suite ran `StartGame("Farm", ...)`,
   and Farm is precisely the level where the book's page insertion cannot go
   wrong — `BlankLevelOnly` customization pages only exist on `BLANKLEVEL`. See
