@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 
@@ -73,9 +74,93 @@ namespace CustomBlocks.Core
                 if (pblock == null)
                 {
                     pblock = CreatePickableBlock();
+                    // Aligning here would measure too early — see
+                    // PickableBlockEnablePatch. Just record the owner so the
+                    // patch can find its way back to this block.
+                    OwnerOf[pblock] = this;
                 }
                 return pblock;
             }
+        }
+
+        // Which block owns a given pickable, so the Enable patch can call back
+        // into the right instance for MinPickSize.
+        internal static readonly Dictionary<PickableBlock, CustomBlock> OwnerOf =
+            new Dictionary<PickableBlock, CustomBlock>();
+
+        // Smallest clickable box, in block units. Artwork alone would make
+        // PigDirt a 0.41-unit target; vanilla picks are 1x1 or larger.
+        public virtual float MinPickSize { get { return 0.75f; } }
+
+        // Make the clickable area agree with the drawn artwork.
+        //
+        // The pick collider arrives from the cloned base block: it is that
+        // block's footprint, sitting at the pickable's origin. The artwork is
+        // then moved and resized independently — Acid shifts its BaseSprite to
+        // (-0.88,-1.33) and scales it, the sprite swap changes its extents —
+        // and nothing keeps the two in step. Measured on the book page, Acid's
+        // and RCReceiver's hitboxes had drifted further than their own height
+        // from their art, so the thing you see and the thing you can pick up
+        // did not overlap at all.
+        public void AlignPickCollider(PickableBlock pick)
+        {
+            Bounds art;
+            if (pick != null && VisibleBounds(pick.transform, out art))
+            {
+                AlignPickCollider(pick, art);
+            }
+        }
+
+        public void AlignPickCollider(PickableBlock pick, Bounds art)
+        {
+            if (pick == null || pick.PickColliders == null) return;
+
+            foreach (Collider2D collider in pick.PickColliders)
+            {
+                BoxCollider2D box = collider as BoxCollider2D;
+                if (box == null) continue;
+
+                Transform t = box.transform;
+                Vector3 centre = t.InverseTransformPoint(art.center);
+                Vector3 size = t.InverseTransformVector(art.size);
+
+                box.offset = new Vector2(centre.x, centre.y);
+                box.size = new Vector2(
+                    Mathf.Max(Mathf.Abs(size.x), MinPickSize),
+                    Mathf.Max(Mathf.Abs(size.y), MinPickSize));
+            }
+        }
+
+        // Bounds of what a thing actually DRAWS.
+        //
+        // Three ways a SpriteRenderer contributes nothing on screen while still
+        // reporting a size: no sprite, disabled, or fully transparent. The last
+        // one is not hypothetical — the glue rig's StickingBlock and
+        // RotatingBlock sit at colour alpha 0, and counting them inflated
+        // Acid's height from 0.45 to 2.91.
+        //
+        // Computed from sprite.bounds through the renderer's matrix rather than
+        // Renderer.bounds, which can still describe a transform as it was
+        // before the line that just moved it.
+        public static bool VisibleBounds(Transform root, out Bounds bounds)
+        {
+            bounds = new Bounds();
+            bool any = false;
+            foreach (SpriteRenderer sr in root.GetComponentsInChildren<SpriteRenderer>(true))
+            {
+                if (sr.sprite == null || !sr.enabled || sr.color.a <= 0.01f) continue;
+                Bounds local = sr.sprite.bounds;
+                Matrix4x4 m = sr.transform.localToWorldMatrix;
+                for (int i = 0; i < 4; i++)
+                {
+                    Vector3 corner = new Vector3((i & 1) == 0 ? local.min.x : local.max.x,
+                                                 (i & 2) == 0 ? local.min.y : local.max.y, 0f);
+                    Vector3 world = m.MultiplyPoint3x4(corner);
+                    if (!any) { bounds = new Bounds(world, Vector3.zero); any = true; }
+                    else bounds.Encapsulate(world);
+                }
+            }
+            return any;
         }
 
         private Placeable pla;
