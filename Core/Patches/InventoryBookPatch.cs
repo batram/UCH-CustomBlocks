@@ -51,6 +51,12 @@ namespace CustomBlocks.Core.Patches
                         cblock.GetComponent<CustomBlock>()?.AddToInventoryPage(inventoryPage);
                     }
 
+                    // Lay the page out instead of leaving each block wherever
+                    // its prefab's world position happened to put it.
+                    var layout = inventoryPage.gameObject.AddComponent<BookPageLayout>();
+                    layout.Items = items;
+                    layout.Paper = inventoryPage.pagePaper;
+
                     var text = inventoryPage.transform.Find("TextCanvas/Moving Things");
                     if (text)
                     {
