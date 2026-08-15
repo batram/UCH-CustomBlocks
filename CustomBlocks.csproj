@@ -94,9 +94,22 @@
       start explorer.exe "steam://rungameid/386940"
     </PostBuildEvent>
     <PreBuildEvent>
-      if not exist  "assets" mkdir "assets"
-      for /r "..\..\Blocks" %%f in (*.png) do copy "%%f" "assets" /y
-      for /r "..\..\Blocks" %%f in (*.wav) do copy "%%f" "assets" /y
+      rem assets\ is rebuilt from scratch, one level per block folder.
+      rem
+      rem "for /r" recursed into the per-block Sprite\ working folders, so the
+      rem shipped plugin carried 43 frames extracted from the game itself, and
+      rem Acid\Sprite\ACid.png collapsed onto Acid\Acid.png because Windows
+      rem filenames are case-insensitive — which of the two survived was
+      rem decided by directory order. Nothing cleaned either, so assets\ still
+      rem held PigFarmButton.png/.wav and chr.png from blocks deleted long ago.
+      rem
+      rem Blocks load their assets as "&lt;Name&gt;.png" (plus the RC blocks'
+      rem "_selection_indicator.png"), and every one of those lives directly in
+      rem its block folder — so one level is exactly the set that is needed.
+      if exist "assets" rmdir /s /q "assets"
+      mkdir "assets"
+      for /d %%d in ("..\..\Blocks\*") do @if exist "%%d\*.png" copy "%%d\*.png" "assets" /y
+      for /d %%d in ("..\..\Blocks\*") do @if exist "%%d\*.wav" copy "%%d\*.wav" "assets" /y
       taskkill /f /fi "imagename eq UltimateChickenHorse.exe"
     </PreBuildEvent>
   </PropertyGroup>
