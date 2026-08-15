@@ -13,7 +13,27 @@ using UnityEngine;
 
 public static class FleetCB
 {
-    public const string Version = "1.33";
+    public const string Version = "1.34";
+
+    // Bounds of what a transform actually DRAWS.
+    //
+    // Three ways a SpriteRenderer reports a size while contributing nothing on
+    // screen: no sprite, disabled, or fully transparent. The last is why this
+    // exists — glue-based blocks carry a crate-and-tire rig that is invisible
+    // at rest and animates in on mouse-over, and counting it made Acid measure
+    // 2.91 units tall instead of 0.45.
+    static bool VisibleArtBounds(Transform root, out Bounds bounds)
+    {
+        bounds = new Bounds();
+        bool any = false;
+        foreach (SpriteRenderer sr in root.GetComponentsInChildren<SpriteRenderer>(true))
+        {
+            if (sr.sprite == null || !sr.enabled || sr.color.a <= 0.01f) continue;
+            if (!any) { bounds = sr.bounds; any = true; }
+            else bounds.Encapsulate(sr.bounds);
+        }
+        return any;
+    }
 
     // Transform.Find does NOT recurse — it walks direct children only. The
     // book's page arrows are nested, so Find("Next") returned null for every
@@ -225,6 +245,51 @@ public static class FleetCB
     // Where the mod's page ended up, located by identity rather than a magic
     // index — the page set differs per level (a blank level adds the
     // BlankLevelOnly customization pages).
+    // Blocks on the CURRENT page whose clickable box has drifted off their
+    // artwork, as JSON. Empty array means every block can be picked up where it
+    // appears to be.
+    //
+    // Reported as offenders rather than a pass/fail so a failure names the
+    // block and the distance, and deliberately NOT a golden: exact sizes move
+    // whenever artwork does, but "the hitbox is on the art" is invariant. The
+    // defect this pins had Acid and RCReceiver displaced further than their own
+    // height, which no other check in the suite could see — a collider in the
+    // wrong place renders nothing and throws nothing; the block simply cannot
+    // be picked up where you see it.
+    public static string BookHitboxOffenders(float tolerance)
+    {
+        InventoryBook book = Book();
+        List<string> bad = new List<string>();
+        if (book.currentPage < 0 || book.currentPage >= book.InventoryPages.Length) return Arr(bad);
+
+        InventoryPage page = book.InventoryPages[book.currentPage];
+        if (page == null) return Arr(bad);
+        Transform items = page.transform.Find("Items");
+        if (items == null) return Arr(bad);
+
+        foreach (Transform child in items)
+        {
+            PickableBlock pick = child.GetComponent<PickableBlock>();
+            if (pick == null || pick.PickColliders == null) continue;
+
+            Bounds art;
+            if (!VisibleArtBounds(child, out art)) continue;
+
+            foreach (Collider2D col in pick.PickColliders)
+            {
+                if (col == null || !col.enabled) continue;
+                Vector3 d = col.bounds.center - art.center;
+                if (Mathf.Max(Mathf.Abs(d.x), Mathf.Abs(d.y)) <= tolerance) continue;
+                bad.Add("{\"block\":" + Q(pick.name)
+                    + ",\"offset\":" + Q(F(d.x) + ";" + F(d.y))
+                    + ",\"art\":" + Q(F(art.size.x) + ";" + F(art.size.y))
+                    + ",\"hit\":" + Q(F(col.bounds.size.x) + ";" + F(col.bounds.size.y))
+                    + "}");
+            }
+        }
+        return Arr(bad);
+    }
+
     public static int BookModPageIndex()
     {
         InventoryBook book = Book();

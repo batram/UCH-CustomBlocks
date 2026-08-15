@@ -62,6 +62,14 @@ string name = (await Host.EvalAsync("FleetCB.BookCurrentPageName()")).Trim('"');
 Check("the page on screen is the mod's", name.Contains("Mod Blocks"), $"{name} — printed \"{shown}\"");
 await SaveScreenshot(Host, "customblocks/blank-book-modpage.png");
 
+// A collider in the wrong place renders nothing and throws nothing — the block
+// just cannot be picked up where you see it. Glue-based blocks were displaced
+// further than their own height and 172 green checks did not notice.
+// PickColliderAligner settles over a few frames, so poll rather than sample.
+if (!await RequireOn("every block's hitbox sits on its artwork", Host,
+                     "FleetCB.BookHitboxOffenders(0.15f) == \"[]\"", 15))
+    Log($"misaligned: {await Host.EvalAsync("FleetCB.BookHitboxOffenders(0.15f)")}");
+
 Step("block probability on a blank level");
 string rules = await Host.EvalAsync("FleetCB.ShowRulesScreen()");
 Log($"rules screen: {rules}");

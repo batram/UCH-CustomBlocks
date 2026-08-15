@@ -61,6 +61,18 @@ Check("a player can turn to the mod page",
       await Host.EvalBoolAsync("FleetCB.BookModPageReachable()"),
       "every page before it needs an active Next arrow");
 
+// Same check as blank-level-book, on the level every other scenario uses.
+// The hitbox has to be measured with the page actually open — the aligner only
+// runs while the block is on display.
+await Host.DoAsync($"FleetCB.OpenBook({modIdx});");
+if (await RequireOn($"settled on the mod page", Host, $"FleetCB.BookSettledOn({modIdx})", 15))
+{
+    if (!await RequireOn("every block's hitbox sits on its artwork", Host,
+                         "FleetCB.BookHitboxOffenders(0.15f) == \"[]\"", 15))
+        Log($"misaligned: {await Host.EvalAsync("FleetCB.BookHitboxOffenders(0.15f)")}");
+}
+await Host.DoAsync("FleetCB.HideBook();");
+
 Step("back to treehouse");
 await Host.DoAsync("Fleet.ReturnToTreehouse();");
 await Require("in the treehouse", "Fleet.Scene() == \"TreeHouseLobby\"", 90);
