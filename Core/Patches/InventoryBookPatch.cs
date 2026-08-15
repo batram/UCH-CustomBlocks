@@ -32,6 +32,17 @@ namespace CustomBlocks.Core.Patches
                         p == null || (p is Component && (((Component)p) == null || ((Component)p).transform.IsChildOf(items))));
                     inventoryPage.textOnPage.RemoveAll(t =>
                         t == null || t.transform.IsChildOf(items));
+                    // InventoryPage.Awake fills FIVE lists from the same
+                    // children, not two. setPageLayer walks spriteRenders and
+                    // sortingGroups with no null guard, so leaving the dead
+                    // ones behind is a MissingReferenceException waiting for a
+                    // page turn (measured: 113 of 115 renderers dead).
+                    inventoryPage.imagesOnPage.RemoveAll(i =>
+                        i == null || i.transform.IsChildOf(items));
+                    inventoryPage.spriteRenders.RemoveAll(s =>
+                        s == null || s.transform.IsChildOf(items));
+                    inventoryPage.sortingGroups.RemoveAll(g =>
+                        g == null || g.transform.IsChildOf(items));
 
                     CustomBlockRegistry.InitBlocks();
 
@@ -51,14 +62,25 @@ namespace CustomBlocks.Core.Patches
                         }
                     }
 
-                    // insert directly after the last inventory-typed page, in
-                    // front of the trailing special pages — located by
-                    // pageType, not by counting from the end (review finding #9)
+                    // Insert after the last real BLOCK inventory page, in front
+                    // of the trailing special pages — the position the
+                    // pre-refactor code hardcoded as "before background
+                    // selection".
+                    //
+                    // pageType alone is not the discriminator (review #9 got
+                    // this wrong): on a blank level the book also carries the
+                    // BlankLevelOnly customization pages, and those reuse
+                    // InventoryPage4/5. The last of them ("Inventory G",
+                    // Select Background) has NO Next arrow, because vanilla
+                    // ends the book there — so anything appended behind it is
+                    // reachable by GotoPage and unreachable by a player.
+                    // BlankLevelOnly is what actually separates the two kinds.
                     int insertAt = __instance.InventoryPages.Length - 1;
                     for (int i = __instance.InventoryPages.Length - 2; i >= 0; i--)
                     {
                         InventoryPage p = __instance.InventoryPages[i];
                         if (p != null
+                            && !p.BlankLevelOnly
                             && p.pageType >= InventoryPage.PageTypes.InventoryPage1
                             && p.pageType <= InventoryPage.PageTypes.InventoryPage9)
                         {
