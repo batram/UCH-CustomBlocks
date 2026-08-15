@@ -36,11 +36,30 @@ Check("book has pages", pages > 0, $"{pages} pages");
 for (int i = 0; i < pages; i++)
 {
     await Host.DoAsync($"FleetCB.OpenBook({i});");
-    await Task.Delay(1500); // page-turn animation settles
-    string? saved = await SaveScreenshot(Host, $"customblocks/book-page-{i}.png");
-    Check($"screenshot page {i}", saved is not null, saved ?? "no screenshot (headless?)");
+    // GotoPage walks one page per 0.1s of real time and only arrives at the
+    // end. Waiting for arrival instead of sleeping a fixed 1.5s is what stops
+    // this loop photographing whatever page the turn happened to be passing:
+    // the committed artifacts it used to produce read 1,2,3,4,3 of 5.
+    if (!await RequireOn($"book settled on page {i}", Host, $"FleetCB.BookSettledOn({i})", 15))
+        continue;
+    await Task.Delay(400); // page-flip animation, after arrival
+
+    string name = (await Host.EvalAsync("FleetCB.BookCurrentPageName()")).Trim('"');
+    string shown = (await Host.EvalAsync("FleetCB.BookShownPage()")).Trim('"');
+    Log($"page {i}: {name} — printed \"{shown}\"");
+    await SaveScreenshot(Host, $"customblocks/book-page-{i}.png");
 }
 await Host.DoAsync("FleetCB.HideBook();");
+
+Step("the mod's own page");
+// A page the array knows about but a player cannot turn to is not in the book.
+// Vanilla's last blank-level page ships without a Next arrow, so where the
+// mod inserts itself decides whether the page exists in practice.
+int modIdx = await Host.EvalIntAsync("FleetCB.BookModPageIndex()");
+Check("mod page is in the book", modIdx >= 0, $"index {modIdx}");
+Check("a player can turn to the mod page",
+      await Host.EvalBoolAsync("FleetCB.BookModPageReachable()"),
+      "every page before it needs an active Next arrow");
 
 Step("back to treehouse");
 await Host.DoAsync("Fleet.ReturnToTreehouse();");

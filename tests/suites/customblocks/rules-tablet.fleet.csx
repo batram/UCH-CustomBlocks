@@ -38,23 +38,33 @@ await Task.Delay(1500);
 
 await Golden("tablet block list", "FleetCB.TabletJson()");
 
-string? saved = await SaveScreenshot(Host, "customblocks/rules-tablet.png");
-Check("rules screen screenshot", saved is not null, saved ?? "no screenshot (headless?)");
+await SaveScreenshot(Host, "customblocks/rules-tablet.png");
 
 Step("block probability page");
 string probScreen = await Host.EvalAsync("FleetCB.ShowBlockProbability()");
 Log($"probability screen: {probScreen}");
 await RequireOn("block list visible", Host, "FleetCB.BlockProbabilityVisible()", 15);
-await Task.Delay(1500);
-string? probShot = await SaveScreenshot(Host, "customblocks/block-probability.png");
-Check("block probability screenshot", probShot is not null, probShot ?? "no screenshot (headless?)");
+// The grid lerps to a page over several frames — a shot taken mid scroll is
+// two half pages. Settle on the strip's offset, not on a fixed delay.
+await RequireOn("grid settled on page 1", Host, "FleetCB.BlockPageSettled(0)", 15);
+await SaveScreenshot(Host, "customblocks/block-probability.png");
 
-// the custom blocks are appended, i.e. on the last page of the grid
-string page = await Host.EvalAsync("FleetCB.GotoLastBlockPage()");
-Log($"block page {page.Trim('"')}");
-await Task.Delay(1500);
-string? lastShot = await SaveScreenshot(Host, "customblocks/block-probability-custom.png");
-Check("custom blocks page screenshot", lastShot is not null, lastShot ?? "no screenshot (headless?)");
+Step("custom blocks page");
+// The custom blocks are appended, so they land on the last page of the grid.
+int lastPage = await Host.EvalIntAsync("FleetCB.BlockPageCount()") - 1;
+await Host.DoAsync("FleetCB.GotoLastBlockPage();");
+await RequireOn($"grid settled on page {lastPage + 1}", Host,
+                $"FleetCB.BlockPageSettled({lastPage})", 20);
+await SaveScreenshot(Host, "customblocks/block-probability-custom.png");
+
+// What the tiles actually RENDER. TabletJson above records
+// pickableBlockPrefab — a field the mod assigns itself — so it stays green
+// while a tile displays the base block's artwork at the base block's scale.
+// This golden is the one that can see that.
+// Host-only: the tablet is the host's UI, and a client's copy legitimately
+// carries different per-tile transform state — Golden() compares peers first
+// and would report a disagreement that means nothing.
+await GoldenOn("tablet tile visuals", Host, "FleetCB.TabletVisualJson()");
 
 Step("back to treehouse");
 await Host.DoAsync("FleetCB.HideBook();");

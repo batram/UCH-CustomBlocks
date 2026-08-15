@@ -13,7 +13,32 @@ using UnityEngine;
 
 public static class FleetCB
 {
-    public const string Version = "1.29";
+    public const string Version = "1.32";
+
+    // Transform.Find does NOT recurse — it walks direct children only. The
+    // book's page arrows are nested, so Find("Next") returned null for every
+    // page and the first run of this fragment reported the whole book as
+    // arrowless. Search the subtree.
+    static Transform FindDeep(Transform root, string name)
+    {
+        foreach (Transform t in root.GetComponentsInChildren<Transform>(true))
+        {
+            if (t.name == name) return t;
+        }
+        return null;
+    }
+
+    // Floats reach goldens as text, and this host runs a comma-decimal
+    // culture — pin the separator or every recorded number drifts.
+    static string F(float f)
+    {
+        return f.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
+    }
+
+    static string Fmt(Vector3 v)
+    {
+        return F(v.x) + ";" + F(v.y) + ";" + F(v.z);
+    }
 
     static Type Registry()
     {
@@ -94,7 +119,16 @@ public static class FleetCB
                 if (pb != null && child.gameObject.activeSelf)
                     picks.Add(Q(pb.name) );
             }
-            pages.Add("{\"index\":" + i + ",\"name\":" + Q(page.name) + ",\"pickables\":" + Arr(picks) + "}");
+            // pageType and blankOnly are in the golden because the mod's page
+            // position depends on them: BlankLevelOnly customization pages
+            // reuse InventoryPageN types, and the last one has no Next arrow.
+            Transform next = FindDeep(page.transform, "Next");
+            pages.Add("{\"index\":" + i
+                + ",\"name\":" + Q(page.name)
+                + ",\"pageType\":" + Q(page.pageType.ToString())
+                + ",\"blankOnly\":" + (page.BlankLevelOnly ? "true" : "false")
+                + ",\"hasNextArrow\":" + (next != null ? "true" : "false")
+                + ",\"pickables\":" + Arr(picks) + "}");
         }
         return Arr(pages);
     }
@@ -125,16 +159,22 @@ public static class FleetCB
         ch.CallCmdSwitchFreeMode();
     }
 
-    // Open the book on its first page, or flip forward to a given page. The
-    // book's own page numbering is not the array index, so navigation is
-    // "reset, then flip N times" — the same thing a player's input does.
-    public static void OpenBook(int flips)
+    // Open the book and ask for a page INDEX into InventoryPages.
+    //
+    // GotoPage runs a coroutine that steps ONE page per 0.1s real time and
+    // only arrives at the end; while it runs it holds GoToPageTurning, which
+    // suppresses the OptionPageNumber guard a manual NextPage would hit. The
+    // previous version of this helper called GotoPage(0) and then fired N
+    // NextPage calls in the same frame, racing the coroutine's precomputed
+    // turn count — it landed on pages 1,2,3,4,3 for requests 0..4 and never
+    // once photographed the mod's own page. Issue exactly one GotoPage and let
+    // the scenario poll BookSettledOn(i).
+    public static void OpenBook(int pageIndex)
     {
         InventoryBook book = Book();
         book.Show(false);
         book.ShowCursor(1);
-        book.GotoPage(0, false, false);
-        for (int i = 0; i < flips; i++) book.NextPage(1, false, false);
+        book.GotoPage(pageIndex, false, false);
     }
 
     public static void HideBook()
@@ -145,6 +185,76 @@ public static class FleetCB
     public static int BookPageCount()
     {
         return Book().InventoryPages.Length;
+    }
+
+    // The page the book has actually arrived at. GotoPage only reaches its
+    // target when the coroutine finishes, so this IS the completion signal.
+    public static int BookCurrentPage()
+    {
+        return Book().currentPage;
+    }
+
+    public static bool BookSettledOn(int pageIndex)
+    {
+        InventoryBook book = Book();
+        return book.Visible && book.currentPage == pageIndex;
+    }
+
+    // The page number printed in the book's corner ("7 / 7"). The strongest
+    // available proof that a screenshot shows the page that was asked for —
+    // it is the same string the player reads.
+    public static string BookShownPage()
+    {
+        InventoryBook book = Book();
+        int i = book.currentPage;
+        if (i < 0 || i >= book.InventoryPages.Length) return "";
+        InventoryPage p = book.InventoryPages[i];
+        if (p == null || p.pageNumberText == null) return "";
+        return p.pageNumberText.text;
+    }
+
+    public static string BookCurrentPageName()
+    {
+        InventoryBook book = Book();
+        int i = book.currentPage;
+        if (i < 0 || i >= book.InventoryPages.Length) return "";
+        if (book.InventoryPages[i] == null) return "";
+        return book.InventoryPages[i].name;
+    }
+
+    // Where the mod's page ended up, located by identity rather than a magic
+    // index — the page set differs per level (a blank level adds the
+    // BlankLevelOnly customization pages).
+    public static int BookModPageIndex()
+    {
+        InventoryBook book = Book();
+        for (int i = 0; i < book.InventoryPages.Length; i++)
+        {
+            InventoryPage p = book.InventoryPages[i];
+            if (p != null && p.name.Contains("Mod Blocks")) return i;
+        }
+        return -1;
+    }
+
+    // A page a player cannot turn to is not in the book, whatever the array
+    // says. Vanilla's last blank-level page ships without a Next arrow, so
+    // anything inserted behind it is stranded: this asks whether every page
+    // up to and including the mod's has a forward arrow leading into it.
+    public static bool BookModPageReachable()
+    {
+        InventoryBook book = Book();
+        int target = BookModPageIndex();
+        if (target <= 0) return target == 0;
+        for (int i = 0; i < target; i++)
+        {
+            InventoryPage p = book.InventoryPages[i];
+            if (p == null) return false;
+            // activeSelf, not activeInHierarchy: the check must give the same
+            // answer whether or not the book happens to be open right now.
+            Transform next = FindDeep(p.transform, "Next");
+            if (next == null || !next.gameObject.activeSelf) return false;
+        }
+        return true;
     }
 
     // -------------------------------------------------------- rules tablet
@@ -215,14 +325,90 @@ public static class FleetCB
 
     // Structural record of the tablet block list: every entry's pickable name
     // and serialize index, in list order. Custom blocks must appear here.
-    public static string TabletJson()
+    static TabletBlockList BlockList()
     {
-        TabletBlockList list = null;
         foreach (TabletBlockList l in Resources.FindObjectsOfTypeAll<TabletBlockList>())
         {
-            if (l.gameObject.scene.IsValid()) { list = l; break; }
+            if (l.gameObject.scene.IsValid()) return l;
         }
-        if (list == null) throw new Exception("FleetCB: no TabletBlockList found");
+        throw new Exception("FleetCB: no TabletBlockList found");
+    }
+
+    public static int BlockPageIndex()
+    {
+        return BlockList().CurrentPage;
+    }
+
+    public static int BlockPageCount()
+    {
+        return BlockList().NumPages;
+    }
+
+    // The grid scrolls to a page over several frames; a screenshot taken mid
+    // scroll shows two half pages. TabletBlockList.scrolling is private, so
+    // settle on the thing LateUpdate actually moves: the strip's anchored x.
+    // Two consecutive polls at the same offset means the lerp has finished.
+    // Scenarios poll this repeatedly, which is what makes the state work.
+    static float lastStripX = float.NaN;
+
+    public static bool BlockPageSettled(int page)
+    {
+        TabletBlockList list = BlockList();
+        if (list.CurrentPage != page)
+        {
+            lastStripX = float.NaN;
+            return false;
+        }
+        RectTransform strip = (RectTransform)list.transform.GetChild(0);
+        float x = strip.anchoredPosition.x;
+        bool steady = !float.IsNaN(lastStripX) && Mathf.Abs(x - lastStripX) < 0.5f;
+        lastStripX = x;
+        return steady;
+    }
+
+    // What each tile actually RENDERS, as opposed to which prefab it was told
+    // to render. TabletJson records pickableBlockPrefab — a field the mod
+    // assigns itself — so it stays green while the tile shows someone else's
+    // artwork. The game builds tile visuals in TabletBlock.InitializeSprites:
+    // it instantiates the pickable under spriteHolder and sets that holder's
+    // scale/offset from BlockProbabilityScale/Offset. A tile cloned from a
+    // vanilla entry without calling it keeps the BASE block's art at the BASE
+    // block's transform — which is exactly what "art" reports here.
+    public static string TabletVisualJson()
+    {
+        TabletBlockList list = BlockList();
+        List<string> rows = new List<string>();
+        for (int i = 0; i < list.tabletBlocks.Length; i++)
+        {
+            TabletBlock tb = list.tabletBlocks[i];
+            if (tb == null || tb.pickableBlockPrefab == null) continue;
+
+            string art = "none";
+            if (tb.spriteHolder != null && tb.spriteHolder.childCount > 0)
+            {
+                art = tb.spriteHolder.GetChild(0).name;
+            }
+            // NOT spriteHolder.localScale: TabletBlock.Update drives it every
+            // frame as one * BlockProbabilityScale * (100 + 10 * scaleAlpha),
+            // where scaleAlpha ramps over 0.1s on hover — sampling it gave
+            // 87 / 88.32 / 89.23 on three consecutive runs. Record the static
+            // prefab fields that Update reads instead: same diagnostic value,
+            // no animation noise.
+            PickableBlock pk = tb.pickableBlockPrefab;
+            rows.Add("{\"pick\":" + Q(pk.name)
+                + ",\"art\":" + Q(art)
+                + ",\"artSprites\":" + (tb.ArtSprites == null ? 0 : tb.ArtSprites.Length)
+                + ",\"probScale\":" + Q(F(pk.BlockProbabilityScale))
+                + ",\"probOffset\":" + Q(F(pk.BlockProbabilityOffset.x) + ";" + F(pk.BlockProbabilityOffset.y))
+                + ",\"probStep\":" + tb.currentProbStep
+                + "}");
+        }
+        return Arr(rows);
+    }
+
+    public static string TabletJson()
+    {
+        TabletBlockList list = BlockList();
 
         List<string> rows = new List<string>();
         for (int i = 0; i < list.tabletBlocks.Length; i++)

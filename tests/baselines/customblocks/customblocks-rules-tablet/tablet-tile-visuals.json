@@ -1,0 +1,562 @@
+[
+  {
+    "art": "01_1x1 Box_Pick(Clone)",
+    "artSprites": 1,
+    "pick": "01_1x1 Box_Pick",
+    "probOffset": "0.04;-0.19",
+    "probScale": "1",
+    "probStep": 7
+  },
+  {
+    "art": "02_Plank2_Pick(Clone)",
+    "artSprites": 1,
+    "pick": "02_Plank2_Pick",
+    "probOffset": "0;-0.31",
+    "probScale": "1",
+    "probStep": 7
+  },
+  {
+    "art": "03_Plank3_Pick(Clone)",
+    "artSprites": 1,
+    "pick": "03_Plank3_Pick",
+    "probOffset": "0.03;-0.22",
+    "probScale": "0.81",
+    "probStep": 7
+  },
+  {
+    "art": "04_Plank4_Pick(Clone)",
+    "artSprites": 1,
+    "pick": "04_Plank4_Pick",
+    "probOffset": "0.02;-0.17",
+    "probScale": "0.63",
+    "probStep": 7
+  },
+  {
+    "art": "05_Plank5_Pick(Clone)",
+    "artSprites": 1,
+    "pick": "05_Plank5_Pick",
+    "probOffset": "-0.02;-0.14",
+    "probScale": "0.49",
+    "probStep": 7
+  },
+  {
+    "art": "06_Beam_Pick(Clone)",
+    "artSprites": 1,
+    "pick": "06_Beam_Pick",
+    "probOffset": "0.08;-0.12",
+    "probScale": "0.38",
+    "probStep": 7
+  },
+  {
+    "art": "07_Barrel_Pick(Clone)",
+    "artSprites": 1,
+    "pick": "07_Barrel_Pick",
+    "probOffset": "0.03;0.24",
+    "probScale": "0.87",
+    "probStep": 7
+  },
+  {
+    "art": "08_HayBale_Pick(Clone)",
+    "artSprites": 1,
+    "pick": "08_HayBale_Pick",
+    "probOffset": "-0.07;-0.29",
+    "probScale": "0.65",
+    "probStep": 7
+  },
+  {
+    "art": "Glue_Pick(Clone)",
+    "artSprites": 3,
+    "pick": "Glue_Pick",
+    "probOffset": "0;0",
+    "probScale": "1",
+    "probStep": 7
+  },
+  {
+    "art": "Coin_Pick(Clone)",
+    "artSprites": 1,
+    "pick": "Coin_Pick",
+    "probOffset": "0;0",
+    "probScale": "1",
+    "probStep": 7
+  },
+  {
+    "art": "Stopwatch_Pick(Clone)",
+    "artSprites": 1,
+    "pick": "Stopwatch_Pick",
+    "probOffset": "0;-0.24",
+    "probScale": "1",
+    "probStep": 5
+  },
+  {
+    "art": "99_Bomb_Pick(Clone)",
+    "artSprites": 5,
+    "pick": "99_Bomb_Pick",
+    "probOffset": "-0.07;-0.12",
+    "probScale": "1",
+    "probStep": 5
+  },
+  {
+    "art": "99a_Bombmini_Pick(Clone)",
+    "artSprites": 5,
+    "pick": "99a_Bombmini_Pick",
+    "probOffset": "0;0",
+    "probScale": "1",
+    "probStep": 5
+  },
+  {
+    "art": "99a_Bombmega_Pick(Clone)",
+    "artSprites": 5,
+    "pick": "99a_Bombmega_Pick",
+    "probOffset": "0.04;-0.25",
+    "probScale": "0.7",
+    "probStep": 5
+  },
+  {
+    "art": "Jetpack_Pick(Clone)",
+    "artSprites": 1,
+    "pick": "Jetpack_Pick",
+    "probOffset": "0;0",
+    "probScale": "1",
+    "probStep": 2
+  },
+  {
+    "art": "JetpackDispenser_Pick(Clone)",
+    "artSprites": 3,
+    "pick": "JetpackDispenser_Pick",
+    "probOffset": "0;0",
+    "probScale": "1",
+    "probStep": 2
+  },
+  {
+    "art": "09_L Boards_Pick(Clone)",
+    "artSprites": 1,
+    "pick": "09_L Boards_Pick",
+    "probOffset": "-0.02;-0.18",
+    "probScale": "0.54",
+    "probStep": 7
+  },
+  {
+    "art": "10_Stairs_Pick(Clone)",
+    "artSprites": 1,
+    "pick": "10_Stairs_Pick",
+    "probOffset": "-0.02;-0.15",
+    "probScale": "0.55",
+    "probStep": 7
+  },
+  {
+    "art": "201_Scaffold_Pick(Clone)",
+    "artSprites": 2,
+    "pick": "201_Scaffold_Pick",
+    "probOffset": "0.04;-0.26",
+    "probScale": "0.44",
+    "probStep": 5
+  },
+  {
+    "art": "CrumbleBlockA_Pick(Clone)",
+    "artSprites": 1,
+    "pick": "CrumbleBlockA_Pick",
+    "probOffset": "0;0",
+    "probScale": "1",
+    "probStep": 5
+  },
+  {
+    "art": "CrumbleBlockI_Pick(Clone)",
+    "artSprites": 1,
+    "pick": "CrumbleBlockI_Pick",
+    "probOffset": "-0.72;0.26",
+    "probScale": "0.76",
+    "probStep": 5
+  },
+  {
+    "art": "CrumbleBlockP_Pick(Clone)",
+    "artSprites": 1,
+    "pick": "CrumbleBlockP_Pick",
+    "probOffset": "-0.64;0.88",
+    "probScale": "0.69",
+    "probStep": 5
+  },
+  {
+    "art": "11_1x1 Spike Block_Pick(Clone)",
+    "artSprites": 1,
+    "pick": "11_1x1 Spike Block_Pick",
+    "probOffset": "0;-0.38",
+    "probScale": "1",
+    "probStep": 5
+  },
+  {
+    "art": "92_FlippingBlock_Pick(Clone)",
+    "artSprites": 1,
+    "pick": "92_FlippingBlock_Pick",
+    "probOffset": "0;0",
+    "probScale": "1",
+    "probStep": 5
+  },
+  {
+    "art": "87_Tennis Ball Shooter_Pick(Clone)",
+    "artSprites": 2,
+    "pick": "87_Tennis Ball Shooter_Pick",
+    "probOffset": "0;0",
+    "probScale": "1",
+    "probStep": 5
+  },
+  {
+    "art": "204_SwingingAxe_Pick(Clone)",
+    "artSprites": 4,
+    "pick": "204_SwingingAxe_Pick",
+    "probOffset": "-1.05;0.04",
+    "probScale": "0.35",
+    "probStep": 5
+  },
+  {
+    "art": "93_SpinningDeath_Pick(Clone)",
+    "artSprites": 3,
+    "pick": "93_SpinningDeath_Pick",
+    "probOffset": "0.07;-0.92",
+    "probScale": "0.73",
+    "probStep": 5
+  },
+  {
+    "art": "206_PressureTriggerSpikes_Pick(Clone)",
+    "artSprites": 6,
+    "pick": "206_PressureTriggerSpikes_Pick",
+    "probOffset": "0;0",
+    "probScale": "0.76",
+    "probStep": 5
+  },
+  {
+    "art": "86_ArrowShooter_Pick(Clone)",
+    "artSprites": 2,
+    "pick": "86_ArrowShooter_Pick",
+    "probOffset": "0.09;-0.25",
+    "probScale": "1",
+    "probStep": 5
+  },
+  {
+    "art": "BoxingGlove_Pick(Clone)",
+    "artSprites": 4,
+    "pick": "BoxingGlove_Pick",
+    "probOffset": "-0.68;-0.08",
+    "probScale": "1",
+    "probStep": 5
+  },
+  {
+    "art": "94_LinearSaw_Pick(Clone)",
+    "artSprites": 3,
+    "pick": "94_LinearSaw_Pick",
+    "probOffset": "0.07;-0.22",
+    "probScale": "0.43",
+    "probStep": 5
+  },
+  {
+    "art": "90_Collapse2x1_Pick(Clone)",
+    "artSprites": 1,
+    "pick": "90_Collapse2x1_Pick",
+    "probOffset": "0;0",
+    "probScale": "1",
+    "probStep": 5
+  },
+  {
+    "art": "207_PaperAirplaneShooter_Pick(Clone)",
+    "artSprites": 9,
+    "pick": "207_PaperAirplaneShooter_Pick",
+    "probOffset": "-0.24;-0.34",
+    "probScale": "0.54",
+    "probStep": 5
+  },
+  {
+    "art": "AnimalCannon_Pick(Clone)",
+    "artSprites": 4,
+    "pick": "AnimalCannon_Pick",
+    "probOffset": "0.03;0.24",
+    "probScale": "0.87",
+    "probStep": 5
+  },
+  {
+    "art": "HockeyShooter_Pick(Clone)",
+    "artSprites": 5,
+    "pick": "HockeyShooter_Pick",
+    "probOffset": "-0.02;-0.46",
+    "probScale": "0.72",
+    "probStep": 5
+  },
+  {
+    "art": "BlackHole_Pick(Clone)",
+    "artSprites": 1,
+    "pick": "BlackHole_Pick",
+    "probOffset": "0;-0.5",
+    "probScale": "0.67",
+    "probStep": 5
+  },
+  {
+    "art": "50_PunchingPlant_Pick(Clone)",
+    "artSprites": 2,
+    "pick": "50_PunchingPlant_Pick",
+    "probOffset": "-0.07;-0.27",
+    "probScale": "0.61",
+    "probStep": 5
+  },
+  {
+    "art": "Beehive_Pick(Clone)",
+    "artSprites": 4,
+    "pick": "Beehive_Pick",
+    "probOffset": "-0.07;-0.29",
+    "probScale": "0.87",
+    "probStep": 2
+  },
+  {
+    "art": "Flamethrower_Pick(Clone)",
+    "artSprites": 3,
+    "pick": "Flamethrower_Pick",
+    "probOffset": "0.13;0",
+    "probScale": "1",
+    "probStep": 5
+  },
+  {
+    "art": "40_Spring_Pick(Clone)",
+    "artSprites": 1,
+    "pick": "40_Spring_Pick",
+    "probOffset": "0;-0.27",
+    "probScale": "1",
+    "probStep": 5
+  },
+  {
+    "art": "95_Teleporter_Pick(Clone)",
+    "artSprites": 2,
+    "pick": "95_Teleporter_Pick",
+    "probOffset": "-0.02;-0.58",
+    "probScale": "1",
+    "probStep": 5
+  },
+  {
+    "art": "21_PiecedBarbedWirex1_Pick(Clone)",
+    "artSprites": 1,
+    "pick": "21_PiecedBarbedWirex1_Pick",
+    "probOffset": "0;0",
+    "probScale": "1",
+    "probStep": 5
+  },
+  {
+    "art": "PieceIceX1_Pick(Clone)",
+    "artSprites": 1,
+    "pick": "PieceIceX1_Pick",
+    "probOffset": "0;0",
+    "probScale": "1",
+    "probStep": 5
+  },
+  {
+    "art": "41_AutoDoor1x4_Pick(Clone)",
+    "artSprites": 1,
+    "pick": "41_AutoDoor1x4_Pick",
+    "probOffset": "0.18;-0.04",
+    "probScale": "0.46",
+    "probStep": 5
+  },
+  {
+    "art": "OneWayDoor_Pick(Clone)",
+    "artSprites": 5,
+    "pick": "OneWayDoor_Pick",
+    "probOffset": "0.18;-0.04",
+    "probScale": "0.6",
+    "probStep": 5
+  },
+  {
+    "art": "91_FanPlatformPick(Clone)",
+    "artSprites": 2,
+    "pick": "91_FanPlatformPick",
+    "probOffset": "0;0",
+    "probScale": "1",
+    "probStep": 5
+  },
+  {
+    "art": "22_PiecedBarbedWirex2_Pick(Clone)",
+    "artSprites": 1,
+    "pick": "22_PiecedBarbedWirex2_Pick",
+    "probOffset": "-0.56;0.04",
+    "probScale": "1",
+    "probStep": 5
+  },
+  {
+    "art": "PieceIceX2_Pick(Clone)",
+    "artSprites": 1,
+    "pick": "PieceIceX2_Pick",
+    "probOffset": "0;0",
+    "probScale": "1",
+    "probStep": 5
+  },
+  {
+    "art": "42_FireHydrant_Pick(Clone)",
+    "artSprites": 1,
+    "pick": "42_FireHydrant_Pick",
+    "probOffset": "0.13;1.75",
+    "probScale": "1",
+    "probStep": 5
+  },
+  {
+    "art": "89_Rotating_Tire_2x2_Pick(Clone)",
+    "artSprites": 1,
+    "pick": "89_Rotating_Tire_2x2_Pick",
+    "probOffset": "0.04;-0.16",
+    "probScale": "1",
+    "probStep": 5
+  },
+  {
+    "art": "23_PiecedBarbedWirex3_Pick(Clone)",
+    "artSprites": 1,
+    "pick": "23_PiecedBarbedWirex3_Pick",
+    "probOffset": "-0.82;0.12",
+    "probScale": "0.78",
+    "probStep": 5
+  },
+  {
+    "art": "PieceIceX3_Pick(Clone)",
+    "artSprites": 1,
+    "pick": "PieceIceX3_Pick",
+    "probOffset": "0;0",
+    "probScale": "1",
+    "probStep": 5
+  },
+  {
+    "art": "96_HorizontalMove_Pick(Clone)",
+    "artSprites": 7,
+    "pick": "96_HorizontalMove_Pick",
+    "probOffset": "0;0",
+    "probScale": "0.4",
+    "probStep": 5
+  },
+  {
+    "art": "FerrisWheel_Pick(Clone)",
+    "artSprites": 10,
+    "pick": "FerrisWheel_Pick",
+    "probOffset": "-0.1;-0.36",
+    "probScale": "0.32",
+    "probStep": 5
+  },
+  {
+    "art": "TreadMill_Pick(Clone)",
+    "artSprites": 1,
+    "pick": "TreadMill_Pick",
+    "probOffset": "-0.07;-0.34",
+    "probScale": "0.85",
+    "probStep": 5
+  },
+  {
+    "art": "200_UpBlower_Pick(Clone)",
+    "artSprites": 3,
+    "pick": "200_UpBlower_Pick",
+    "probOffset": "0.04;-0.25",
+    "probScale": "0.7",
+    "probStep": 5
+  },
+  {
+    "art": "202_SmoothRotate_Pick(Clone)",
+    "artSprites": 2,
+    "pick": "202_SmoothRotate_Pick",
+    "probOffset": "0;0",
+    "probScale": "1",
+    "probStep": 5
+  },
+  {
+    "art": "203_LongDistanceMove_Pick(Clone)",
+    "artSprites": 8,
+    "pick": "203_LongDistanceMove_Pick",
+    "probOffset": "-0.63;-0.04",
+    "probScale": "0.25",
+    "probStep": 5
+  },
+  {
+    "art": "205_DiagonalMover_Pick(Clone)",
+    "artSprites": 4,
+    "pick": "205_DiagonalMover_Pick",
+    "probOffset": "-0.27;-0.49",
+    "probScale": "0.58",
+    "probStep": 5
+  },
+  {
+    "art": "Xout",
+    "artSprites": 13,
+    "pick": "Thwomp_Pick",
+    "probOffset": "-0.07;-0.27",
+    "probScale": "0.61",
+    "probStep": 5
+  },
+  {
+    "art": "DancingMover_LShaped_Pick",
+    "artSprites": 7,
+    "pick": "DancingMover_LShaped_Pick",
+    "probOffset": "-0.27;-0.49",
+    "probScale": "0.58",
+    "probStep": 5
+  },
+  {
+    "art": "01_1x1 Box_Pick(Clone)",
+    "artSprites": 1,
+    "pick": "OneRoundWood_Pick",
+    "probOffset": "0.04;-0.19",
+    "probScale": "1",
+    "probStep": 7
+  },
+  {
+    "art": "Coin_Pick(Clone)",
+    "artSprites": 1,
+    "pick": "ReCoin_Pick",
+    "probOffset": "0;0",
+    "probScale": "1",
+    "probStep": 7
+  },
+  {
+    "art": "Glue_Pick(Clone)",
+    "artSprites": 3,
+    "pick": "RCReceiver_Pick",
+    "probOffset": "0;0",
+    "probScale": "1",
+    "probStep": 7
+  },
+  {
+    "art": "BoxingGlove_Pick(Clone)",
+    "artSprites": 4,
+    "pick": "RCTransmitter_Pick",
+    "probOffset": "-0.68;-0.08",
+    "probScale": "1",
+    "probStep": 5
+  },
+  {
+    "art": "05_Plank5_Pick(Clone)",
+    "artSprites": 1,
+    "pick": "FloatyCloud_Pick",
+    "probOffset": "-0.02;-0.14",
+    "probScale": "0.49",
+    "probStep": 7
+  },
+  {
+    "art": "01_1x1 Box_Pick(Clone)",
+    "artSprites": 1,
+    "pick": "PigFarmButton_Pick",
+    "probOffset": "0.04;-0.19",
+    "probScale": "1",
+    "probStep": 7
+  },
+  {
+    "art": "Coin_Pick(Clone)",
+    "artSprites": 1,
+    "pick": "PigDirt_Pick",
+    "probOffset": "0;0",
+    "probScale": "1",
+    "probStep": 7
+  },
+  {
+    "art": "07_Barrel_Pick(Clone)",
+    "artSprites": 1,
+    "pick": "ChickenRoll_Pick",
+    "probOffset": "0.03;0.24",
+    "probScale": "0.87",
+    "probStep": 7
+  },
+  {
+    "art": "Glue_Pick(Clone)",
+    "artSprites": 3,
+    "pick": "Acid_Pick",
+    "probOffset": "0;0",
+    "probScale": "1",
+    "probStep": 7
+  }
+]

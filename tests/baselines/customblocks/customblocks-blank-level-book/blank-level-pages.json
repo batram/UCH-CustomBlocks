@@ -138,5 +138,21 @@
       "ChickenRoll_Pick",
       "Acid_Pick"
     ]
+  },
+  {
+    "blankOnly": true,
+    "hasNextArrow": true,
+    "index": 5,
+    "name": "Inventory F",
+    "pageType": "InventoryPage4",
+    "pickables": []
+  },
+  {
+    "blankOnly": true,
+    "hasNextArrow": false,
+    "index": 6,
+    "name": "Inventory G",
+    "pageType": "InventoryPage5",
+    "pickables": []
   }
 ]
