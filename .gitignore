@@ -1,4 +1,19 @@
-.vs/*
-obj/*
-plugins/*
-.gitignoretests/artifacts/*
+.vs/
+obj/
+plugins/
+
+# Per-run evidence, not committed — see tests/README.md. This was the intent of
+# a6fd47a, but the rule was appended without a newline and silently merged into
+# the previous line, so the artifacts stayed tracked and every run dirtied 20
+# PNGs. Goldens under tests/baselines/ are the compared artifacts.
+tests/artifacts/
+
+# Machine-local agent permissions. Shared settings would go in
+# .claude/settings.json, which is deliberately not ignored.
+.claude/settings.local.json
+
+# Working and reference art: sprite frames extracted from the game (GoldCoin,
+# Coin_Explode, coineffect, _static-Honey) plus WIP exports. Not ours to
+# redistribute from a public repo (AGENTS.md), and the build's PreBuildEvent
+# sweeps every PNG under Blocks\ into the shipped assets folder.
+Blocks/*/Sprite/
