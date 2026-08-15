@@ -232,6 +232,13 @@ sessions. The rules, and why:
   `blank-level-book.fleet.csx`. Guard blank-level scenarios with
   `Fleet.PortalsJson()`/`Abort`: the treehouse rotates its portals.
 
+### Live debugging
+
+`tools/draw-bounds.ps1` overlays artwork bounds and clickable bounds on the
+book or tablet against a running game — see `docs/live-debugging.md`, which
+also records two traps (draw on layer 5 or the UI camera never rasterises it;
+alpha-0 renderers still contribute to bounds).
+
 ### Re-recording baselines
 
 `--update-baselines` rewrites goldens to match current behaviour, so it can

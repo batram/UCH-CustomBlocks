@@ -52,6 +52,38 @@ it is somewhere under `TabletRulesScreen.blockSettingsSubdialog`.
 
 ---
 
+## Book page: clickable areas do not match the artwork
+
+Separate from the layout below, and worse — a misplaced hitbox is invisible
+until someone tries to pick the block up. Measured with
+`tools\draw-bounds.ps1 -Target book` (green = art, red = collider):
+
+```
+  OneRoundWood_Pick      art 0.81x0.81  hit 0.75x0.75  offset -0.01,-0.01
+  ReCoin_Pick            art 0.8x0.86   hit 0.75x0.75  offset -0.03,-0.03
+  MultiStart_Pick        art 3.4x0.82   hit 3x0.75     offset  0.11, 0.02
+  RCReceiver_Pick        art 0.54x0.55  hit 0.75x0.75  offset  0.24, 0.57
+  RCTransmitter_Pick     art 1x1.93     hit 0.75x1.87  offset -0.73, 0.14
+  FloatyCloud_Pick       art 4.22x1.28  hit 2.75x0.55  offset  0,   -0.05
+  PigDirt_Pick           art 0.41x0.41  hit 0.75x0.75  offset -0.24,-0.24
+  ChickenRoll_Pick       art 1.2x1.2    hit 1x1        offset  0,   -0.25
+  Acid_Pick              art 0.61x0.45  hit 0.75x0.75  offset  0.36, 0.77
+```
+
+Acid and RCReceiver are offset by more than their own height, so their hitbox
+and their artwork do not overlap at all. PigDirt's offset is over half its size.
+
+Cause: `PickColliders` come from the cloned base block and stay where the base
+put them, while the artwork is moved independently — by each block's
+`CreatePickableBlock` (Acid sets `BaseSprite.localPosition` to
+`(-0.88, -1.33)`, for instance) and by the sprite swap changing the art's size.
+Nothing keeps the two in step.
+
+Fix direction: after building a pickable, drive the collider from the measured
+visible bounds so the clickable area is the artwork by construction. Worth
+doing at the same time as the layout work below, since both need the same
+measurement.
+
 ## Book page layout: blocks clip off the edge
 
 `CustomBlock.AddToInventoryPage` assigns `transform.parent` directly, which
