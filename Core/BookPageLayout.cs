@@ -59,7 +59,7 @@ namespace CustomBlocks.Core
             foreach (Transform child in Items)
             {
                 Bounds b;
-                if (!CustomBlock.VisibleBounds(child, out b)) continue;
+                if (!Measure(child, out b)) continue;
                 Vector2 size = new Vector2(b.size.x, b.size.y);
                 Vector2 known;
                 if (smallest.TryGetValue(child, out known)
@@ -114,7 +114,7 @@ namespace CustomBlocks.Core
                 if (!smallest.TryGetValue(child, out size)) continue;
 
                 Bounds current;
-                if (!CustomBlock.VisibleBounds(child, out current)) continue;
+                if (!Measure(child, out current)) continue;
 
                 if (x > left) x += (group[i] != previousGroup) ? 0.95f : 0.4f + 0.25f * Wobble(child.name, 3);
                 if (x + size.x > right)
@@ -132,6 +132,33 @@ namespace CustomBlocks.Core
                 rowHeight = Mathf.Max(rowHeight, size.y + Mathf.Abs(jitter));
                 previousGroup = group[i];
             }
+        }
+
+        // Artwork plus any caption, which is what the page has to make room for.
+        //
+        // Deliberately wider than CustomBlock.VisibleBounds, which counts
+        // SpriteRenderers only. MultiStart carries a "MultiStart" text label
+        // above its icon; invisible to the sprite-only measure, it sailed
+        // straight over the page title. The hitbox path keeps using the
+        // sprite-only bounds — a caption is not something you click.
+        static bool Measure(Transform child, out Bounds bounds)
+        {
+            bool any = CustomBlock.VisibleBounds(child, out bounds);
+            foreach (UnityEngine.UI.Text text in child.GetComponentsInChildren<UnityEngine.UI.Text>(true))
+            {
+                if (!text.enabled || !text.gameObject.activeInHierarchy) continue;
+                if (string.IsNullOrEmpty(text.text)) continue;
+                RectTransform rt = text.transform as RectTransform;
+                if (rt == null) continue;
+                Vector3[] corners = new Vector3[4];
+                rt.GetWorldCorners(corners);
+                for (int i = 0; i < 4; i++)
+                {
+                    if (!any) { bounds = new Bounds(corners[i], Vector3.zero); any = true; }
+                    else bounds.Encapsulate(corners[i]);
+                }
+            }
+            return any;
         }
 
         // Deterministic stand-in for a hand's imprecision. Seeded from the block

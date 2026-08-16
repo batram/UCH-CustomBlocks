@@ -83,7 +83,7 @@ System.Action<Bounds,Color,string,int> box = (b, col, nm, order) => {
 System.Func<Transform,SpriteRenderer,Bounds> visible = (root, skip) => {
     bool any = false; Bounds b = new Bounds();
     foreach (var sr in root.GetComponentsInChildren<SpriteRenderer>(true)) {
-        if (sr.sprite == null || !sr.enabled || sr.color.a <= 0.01f) continue;
+        if (sr.sprite == null || !sr.enabled || !sr.gameObject.activeInHierarchy || sr.color.a <= 0.01f) continue;
         if (skip != null && sr.gameObject == skip.gameObject) continue;
         if (!any) { b = sr.bounds; any = true; } else b.Encapsulate(sr.bounds);
     }

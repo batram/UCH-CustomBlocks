@@ -148,7 +148,12 @@ namespace CustomBlocks.Core
             bool any = false;
             foreach (SpriteRenderer sr in root.GetComponentsInChildren<SpriteRenderer>(true))
             {
-                if (sr.sprite == null || !sr.enabled || sr.color.a <= 0.01f) continue;
+                // activeInHierarchy matters as well as enabled: deactivating a
+                // GameObject is the only way to hide art that Enable(true)
+                // would otherwise switch back on, and such a renderer still
+                // reports enabled == true.
+                if (sr.sprite == null || !sr.enabled || !sr.gameObject.activeInHierarchy
+                    || sr.color.a <= 0.01f) continue;
                 Bounds local = sr.sprite.bounds;
                 Matrix4x4 m = sr.transform.localToWorldMatrix;
                 for (int i = 0; i < 4; i++)

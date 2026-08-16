@@ -110,7 +110,13 @@ block under `Blocks/`.
   `StartPlank`, has no tablet entry of its own, so `BaseTabletBlock` returns
   null and the patch shrinks it out of the list. Arguably correct — a spawn
   plank has no frequency to set — but it happens silently. Nine blocks are
-  registered and eight are listed.
+  registered and eight are listed. (Its *book* icon is handled — it draws the
+  platform it places, labelled — this entry is only about the tablet.)
+- **MultiStart's icon carries a hardcoded 0.45 scale.** Every other block's
+  book art sits at true relative size; MultiStart is deliberately shrunk
+  because the real platform is 3.1 x 3.9 against a next-tallest of 1.9. The
+  label fit beside it *is* measured (text width against bar width), so only the
+  overall scale is a judgement call.
 - **RCTransmitter's tablet fit matches on the wrong axis.** Its art is portrait
   (1.04 x 2.01) while its base, BoxingGlove, is landscape (2.01 x 1.03), so
   "match the base's longest axis" equates our height to their width. It reads

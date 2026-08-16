@@ -13,7 +13,7 @@ using UnityEngine;
 
 public static class FleetCB
 {
-    public const string Version = "1.34";
+    public const string Version = "1.35";
 
     // Bounds of what a transform actually DRAWS.
     //
@@ -28,7 +28,7 @@ public static class FleetCB
         bool any = false;
         foreach (SpriteRenderer sr in root.GetComponentsInChildren<SpriteRenderer>(true))
         {
-            if (sr.sprite == null || !sr.enabled || sr.color.a <= 0.01f) continue;
+            if (sr.sprite == null || !sr.enabled || !sr.gameObject.activeInHierarchy || sr.color.a <= 0.01f) continue;
             if (!any) { bounds = sr.bounds; any = true; }
             else bounds.Encapsulate(sr.bounds);
         }
