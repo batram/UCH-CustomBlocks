@@ -62,6 +62,24 @@
 - Preserve unrelated user changes and untracked files in every repository.
 - Do not commit decompiled proprietary game source or game assemblies.
 
+## Searching decompiled UCH code (use the MCP index, not grep)
+
+- The 1.13 decompilation at
+  `C:\Users\mjb\develop\UCH-dev\decompiled_UCH\UCH-decomp_1.13` is indexed by
+  the global codebase-memory-mcp server as project
+  `C-Users-mjb-develop-UCH-dev-decompiled_UCH-UCH-decomp_1.13` (~46k nodes).
+  Plain grep/rg over that tree takes minutes or times out — use the MCP tools:
+  - `search_code` (grep + graph enrichment) for text patterns. Prefer plain
+    substring patterns; regex using `\w` classes has returned 0 hits where a
+    substring matches, so verify a 0-hit regex with a substring probe before
+    trusting it.
+  - `search_graph` to find functions/classes/methods by name or
+    natural-language query; `get_code_snippet` with the returned
+    qualified_name to read a definition.
+- Falling back to text tools is fine for a *single* known file (e.g. Read on
+  `Assembly-CSharp\<Type>.cs`) — just never a recursive grep over the whole
+  tree.
+
 ## Shared Glorpy knowledge
 
 - Reusable Ultimate Chicken Horse investigation and troubleshooting knowledge is
