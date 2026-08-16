@@ -633,6 +633,32 @@ public static class FleetCB
         return cursor.Piece == null ? "nothing" : cursor.Piece.name;
     }
 
+    // CustomBlocks creates several colliders after cloning a live base prefab.
+    // Every collider attached to a ColliderModeControl must still follow that
+    // control when the held piece changes mode.
+    public static string HeldNoColliderLeak()
+    {
+        PiecePlacementCursor cursor = LocalCursor();
+        if (cursor.Piece == null) throw new Exception("FleetCB: cursor holds no piece");
+        Placeable piece = cursor.Piece;
+        piece.SwitchColliderTo(ColliderModeEnum.NoColliders);
+        int total = 0;
+        int enabled = 0;
+        ColliderModeControl[] controls = piece.GetComponentsInChildren<ColliderModeControl>(true);
+        foreach (ColliderModeControl control in controls)
+        {
+            if (control == null) continue;
+            foreach (Collider2D collider in control.GetComponents<Collider2D>())
+            {
+                if (collider == null) continue;
+                total++;
+                if (collider.enabled) enabled++;
+            }
+        }
+        piece.SwitchColliderTo(ColliderModeEnum.PlacementPhase);
+        return "total=" + total + ",enabledDuringNone=" + enabled;
+    }
+
     // --------------------------------------------- level geometry (QuickSaver)
 
     // Move a piece the LEVEL shipped with (not one we placed): its new position
