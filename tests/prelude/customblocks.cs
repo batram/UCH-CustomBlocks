@@ -808,6 +808,84 @@ public static class FleetCB
         return (bool)ls.GetProperty("IsBackground").GetValue(state, null);
     }
 
+    // Select a layer by name for the player the keyboard drives. "Default" is
+    // the solid pseudo-layer, which is a selectable position like any other.
+    public static string SetLayer(string layerName)
+    {
+        Type ls = ModType("CustomBlocks.Backgrounds.LayerState");
+        object state = ls.GetProperty("View",
+            System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
+            .GetValue(null, null);
+        if (state == null) throw new Exception("FleetCB: no LayerState.View (no local cursor?)");
+
+        int layer = layerName == "Default"
+            ? (int)ls.GetField("Solid").GetValue(null)
+            : (int)ls.GetMethod("IndexOf").Invoke(null, new object[] { layerName });
+        if (layer < -1) throw new Exception("FleetCB: no sorting layer named " + layerName);
+
+        ls.GetMethod("Select").Invoke(state, new object[] { layer });
+        return (string)ls.GetMethod("LayerName", new Type[0]).Invoke(state, null);
+    }
+
+    // Per-local-player layer state, one row per cursor this client owns, sorted
+    // so two peers emit the same order.
+    //
+    // Per PLAYER, not global: the mod keys this on Cursor.localNumber, and the
+    // point of several of these assertions is that one player's choice leaves
+    // everyone else's alone — including a remote player's, which lives entirely
+    // in their own client.
+    public static string LayerStateJson()
+    {
+        Type ls = ModType("CustomBlocks.Backgrounds.LayerState");
+        System.Reflection.MethodInfo forCursor = ls.GetMethod("For", new Type[] { typeof(global::Cursor) });
+
+        List<string> rows = new List<string>();
+        foreach (PiecePlacementCursor c in UnityEngine.Object.FindObjectsOfType<PiecePlacementCursor>())
+        {
+            if (c == null || !c.hasAuthority) continue;
+
+            object state = forCursor.Invoke(null, new object[] { c });
+            rows.Add("{\"player\":" + c.localNumber
+                + ",\"mode\":" + ((bool)ls.GetField("ModeEnabled").GetValue(state) ? "true" : "false")
+                + ",\"layer\":" + Q((string)ls.GetMethod("LayerName", new Type[0]).Invoke(state, null))
+                + ",\"background\":" + ((bool)ls.GetProperty("IsBackground").GetValue(state, null) ? "true" : "false")
+                + ",\"highlight\":" + ((bool)ls.GetField("HighlightLayer").GetValue(state) ? "true" : "false")
+                + "}");
+        }
+        rows.Sort(StringComparer.Ordinal);
+        return Arr(rows);
+    }
+
+    // Whether the local cursor is frozen.
+    //
+    // This is the observable for "the inventory book is open": opening it
+    // freezes the cursor, which is also how the game decides to stop drawing its
+    // control hints. The book GameObject is NOT the signal — it stays active in
+    // the hierarchy while closed, and page counts answer "does a book exist",
+    // not "is the player looking at one".
+    public static bool CursorFrozen()
+    {
+        foreach (PiecePlacementCursor c in UnityEngine.Object.FindObjectsOfType<PiecePlacementCursor>())
+        {
+            if (c == null || !c.hasAuthority) continue;
+            return c.frozen;
+        }
+        return false;
+    }
+
+    // Whether the local cursor is holding a piece, and what it is. "none" when
+    // empty — the observable for "the chord did not also place or pick".
+    public static string HeldPiece()
+    {
+        foreach (PiecePlacementCursor c in UnityEngine.Object.FindObjectsOfType<PiecePlacementCursor>())
+        {
+            if (c == null || !c.hasAuthority) continue;
+            if (c.Piece == null) return "none";
+            return c.Piece.name;
+        }
+        return "no-cursor";
+    }
+
     // Every background block in the scene: cleaned name, layer, alpha, and the
     // (magic-offset) serialize index its metadata carries.
     public static string BackgroundJson()

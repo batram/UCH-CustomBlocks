@@ -207,6 +207,24 @@ Fleet scenarios live in `tests\` and are run by the sibling
 `UCH-HarmonicSheepFleet` harness via `tests\fleet.cmd`; see `tests\README.md`
 for the profile and plugin-selection flags.
 
+### Runs are hidden — do not make them visible to "see what happens"
+
+Fleet runs launch the instances on a private desktop by default. `--visible` is
+for bringing up a new scenario, and is a debugging aid, not a normal run.
+
+A visible run is not merely rude, it corrupts results: the game window takes
+focus and the user's mouse then drags the build cursor, so any scenario that
+positions the cursor and drops a block fails as `cannot-place`, unreproducibly.
+`cross-peer` went 4/10 visible and 10/10 hidden with nothing else changed (and
+41s rather than 106s, for not fighting over focus). Two of those failures were
+first misread as a regression in the mod.
+
+Hiding the *harness* does nothing — `uch-mcp-proxy` spawns the game, and a
+child's desktop is set by its parent, so the flag has to reach the proxy
+(`launch_game`'s `hidden`, default `UCH_LAUNCH_HIDDEN`). Screenshots still work
+hidden, because the bridge captures after rendering rather than grabbing the
+screen.
+
 ### Screenshots are not evidence unless something asserts the view
 
 Run before committing test changes:
