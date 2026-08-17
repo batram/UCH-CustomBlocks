@@ -33,6 +33,13 @@ namespace CustomBlocks
         public static ConfigEntry<KeyCode> SwitchLayerKey;
         public static ConfigEntry<KeyCode> HighlightBlockKey;
 
+        public static ConfigEntry<bool> ControllerBindings;
+        public static ConfigEntry<Backgrounds.PadButton> PadModifier;
+        public static ConfigEntry<Backgrounds.PadButton> PadBackground;
+        public static ConfigEntry<Backgrounds.PadButton> PadPrevLayer;
+        public static ConfigEntry<Backgrounds.PadButton> PadNextLayer;
+        public static ConfigEntry<Backgrounds.PadButton> PadHighlight;
+
 
         public static string path;
 
@@ -66,6 +73,25 @@ namespace CustomBlocks
             PrevLayerKey = Config.Bind("INPUT", "PrevLayerKey", KeyCode.K, "Keybinding: Switch to the previous layer");
             SwitchLayerKey = Config.Bind("INPUT", "SwitchLayerKey", KeyCode.L, "Keybinding: Switch to the next layer");
             HighlightBlockKey = Config.Bind("INPUT", "HighlightBlockKey", KeyCode.H, "Keybinding: Highlight blocks on current layer");
+
+            ControllerBindings = Config.Bind("INPUT", "ControllerBindings", true,
+                "Controller support during free play building: hold the modifier below and press one "
+                + "of the buttons below. Turning this off gives the modifier and those buttons "
+                + "entirely back to the game.");
+
+            // Buttons are laid out to match the hint stack on the cursor: the
+            // background row sits at the bottom like A, highlight at the top like Y,
+            // and the layer pair reads left-to-right.
+            PadModifier = Config.Bind("INPUT", "PadModifier", Backgrounds.PadButton.R2,
+                "Controller: held to reach the mod's bindings. Taken from the game while building.");
+            PadBackground = Config.Bind("INPUT", "PadBackground", Backgrounds.PadButton.A,
+                "Controller: modifier + this toggles background mode.");
+            PadPrevLayer = Config.Bind("INPUT", "PadPrevLayer", Backgrounds.PadButton.X,
+                "Controller: modifier + this selects the previous layer.");
+            PadNextLayer = Config.Bind("INPUT", "PadNextLayer", Backgrounds.PadButton.B,
+                "Controller: modifier + this selects the next layer.");
+            PadHighlight = Config.Bind("INPUT", "PadHighlight", Backgrounds.PadButton.Y,
+                "Controller: modifier + this toggles the layer highlight.");
         }
 
         // Unity copies hideFlags to Instantiate clones, so every instance made
