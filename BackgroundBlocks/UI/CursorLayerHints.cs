@@ -7,6 +7,10 @@ namespace CustomBlocks.Backgrounds.UI
     // Adds the mod's shortcuts to the cursor's own control-hint cluster, cloned
     // from the game's hint rows so they carry the real key box, font and colours.
     //
+    // They stack up and to the left of the Inventory row's key box, on a gentle
+    // arc, with their labels running leftwards — which keeps them off the
+    // character art and out of the way of the game's own rows below.
+    //
     // Two earlier attempts are worth not repeating. A screen-anchored panel cannot
     // work here at all: the gameplay camera follows the cursor, so a widget pinned
     // to a screen corner slides away as the cursor approaches it. A custom canvas
@@ -22,25 +26,22 @@ namespace CustomBlocks.Backgrounds.UI
     {
         const string clonePrefix = "CustomBlocksHint_";
 
-        const float rowHeight = 50f;
-        const float rowSpacing = 46f;
-        const float stackGap = 10f;
+        // Key boxes are 50 tall, so this is just enough to keep them apart.
+        const float rowStep = 49f;
+
+        // One key box plus a small gap, left of the Inventory row's box.
+        const float inventoryGap = 56f;
+
+        const float labelGap = 8f;
+
+        static readonly Color activeTint = new Color(1f, 0.84f, 0.42f);
 
         static readonly Dictionary<PiecePlacementCursor, CursorLayerHints> instances =
             new Dictionary<PiecePlacementCursor, CursorLayerHints>();
 
-        static readonly Vector3[] cornerCache = new Vector3[4];
-
         PiecePlacementCursor cursor;
         RectTransform rows;
-
-        CursorControlHintButton modeRow;
-        CursorControlHintButton layerRow;
-        CursorControlHintButton highlightRow;
-
-        Text modeLabel;
-        Text layerLabel;
-        Text highlightLabel;
+        CursorControlHintButton inventoryRow;
 
         // The key-box sprite is not authored on the prefab: MultiControllerUIManager
         // assigns it every frame from the button's inputKey and the active
@@ -49,7 +50,56 @@ namespace CustomBlocks.Backgrounds.UI
         // at whatever was set the instant we cloned, which early in a cursor's life
         // is nothing at all, and the box renders blank and washed out.
         Image templateGlyph;
-        readonly List<Image> glyphImages = new List<Image>();
+
+        Row modeRow;
+        Row layerRow;
+        Row highlightRow;
+
+        class Row
+        {
+            public CursorControlHintButton button;
+            public RectTransform rect;
+            public Text label;
+            public readonly List<Image> glyphImages = new List<Image>();
+        }
+
+        // Resolved at layout time, never cached. The key boxes are not at their
+        // final positions when the row is cloned: MultiControllerButton is only
+        // destroyed at the end of that frame, and it moves the second box before
+        // then — so a lookup done in CloneRow finds both edges on the same child.
+        static RectTransform EdgeGlyph(RectTransform row, bool rightmost)
+        {
+            RectTransform best = null;
+            foreach (Transform child in row)
+            {
+                if (!child.name.Contains("MultiControllerButton"))
+                {
+                    continue;
+                }
+
+                var glyph = (RectTransform)child;
+                if (best == null
+                    || (rightmost
+                        ? glyph.anchoredPosition.x > best.anchoredPosition.x
+                        : glyph.anchoredPosition.x < best.anchoredPosition.x))
+                {
+                    best = glyph;
+                }
+            }
+
+            return best;
+        }
+
+        // Each row up also steps left, easing off after the first, so the stack
+        // curves away from the character rather than running off on a diagonal.
+        static float ArcX(int step)
+        {
+            if (step <= 0)
+            {
+                return 0f;
+            }
+            return step == 1 ? -26f : -40f;
+        }
 
         // Called for every cursor from the FixedUpdate patch, so the rows appear
         // however the cursor came to exist (spawn, respawn, free-play player
@@ -125,29 +175,38 @@ namespace CustomBlocks.Backgrounds.UI
             // The Inventory row is the keyboard-key template: a lettered key box
             // plus a label. The PickUp row looks wrong cloned, because accept is
             // bound to the mouse and its glyph is a mouse, not a key.
-            CursorControlHintButton template = null;
+            CursorControlHintButton single = null;
+            CursorControlHintButton pair = null;
             foreach (CursorControlHintButton button in cursor.cursorControlHints.hintButtons)
             {
-                if (button != null && button.button == CursorControlHints.Button.Inventory)
+                if (button == null)
                 {
-                    template = button;
-                    break;
+                    continue;
+                }
+                if (button.button == CursorControlHints.Button.Inventory)
+                {
+                    single = button;
+                }
+                else if (button.button == CursorControlHints.Button.Rotate)
+                {
+                    pair = button;
                 }
             }
 
-            if (template == null || template.transform.parent == null)
+            if (single == null || single.transform.parent == null)
             {
                 Debug.LogWarning("CustomBlocks: no Inventory hint row to clone; layer hints disabled");
                 return false;
             }
 
-            rows = template.transform.parent as RectTransform;
+            inventoryRow = single;
+            rows = single.transform.parent as RectTransform;
             if (rows == null)
             {
                 return false;
             }
 
-            foreach (MultiControllerButton glyphDriver in template.GetComponentsInChildren<MultiControllerButton>(true))
+            foreach (MultiControllerButton glyphDriver in single.GetComponentsInChildren<MultiControllerButton>(true))
             {
                 templateGlyph = glyphDriver.buttonImage;
                 break;
@@ -155,27 +214,15 @@ namespace CustomBlocks.Backgrounds.UI
 
             // The layer row shows two keys, so it clones the Rotate row — the
             // game's own two-key template (Q/E) — rather than the one-key one.
-            CursorControlHintButton pairTemplate = template;
-            foreach (CursorControlHintButton button in cursor.cursorControlHints.hintButtons)
-            {
-                if (button != null && button.button == CursorControlHints.Button.Rotate)
-                {
-                    pairTemplate = button;
-                    break;
-                }
-            }
-
-            modeRow = CloneRow(template, "Mode", out modeLabel);
-            layerRow = CloneRow(pairTemplate, "Layer", out layerLabel);
-            highlightRow = CloneRow(template, "Highlight", out highlightLabel);
+            modeRow = CloneRow(single, "Mode");
+            layerRow = CloneRow(pair != null ? pair : single, "Layer");
+            highlightRow = CloneRow(single, "Highlight");
 
             return modeRow != null && layerRow != null && highlightRow != null;
         }
 
-        CursorControlHintButton CloneRow(CursorControlHintButton template, string suffix, out Text label)
+        Row CloneRow(CursorControlHintButton template, string suffix)
         {
-            label = null;
-
             GameObject clone = Instantiate(template.gameObject, rows, false);
             clone.name = clonePrefix + suffix;
             CustomBlocksMod.UnhideInstance(clone);
@@ -187,22 +234,28 @@ namespace CustomBlocks.Backgrounds.UI
             rect.pivot = source.pivot;
             rect.sizeDelta = source.sizeDelta;
 
+            var row = new Row();
+            row.rect = rect;
+            row.button = clone.GetComponent<CursorControlHintButton>();
+            if (row.button != null)
+            {
+                row.label = row.button.buttonText;
+            }
+
             // MultiControllerButton rewrites the glyph from its own inputKey every
             // frame, and Localize rewrites the label from a translation key. Both
             // would stomp the text set below, and neither has anything to say about
-            // a key the game does not know about.
+            // a key the game does not know about. Keep the Images they drove so the
+            // sprite can be mirrored and the box tinted.
             foreach (MultiControllerButton glyphDriver in clone.GetComponentsInChildren<MultiControllerButton>(true))
             {
-                // Keep the Image it was driving so the sprite can be mirrored from
-                // the template; the driver itself has to go before it overwrites the
-                // glyph letter from an inputKey that means nothing here.
                 if (glyphDriver.buttonImage != null)
                 {
-                    glyphImages.Add(glyphDriver.buttonImage);
+                    row.glyphImages.Add(glyphDriver.buttonImage);
                 }
                 if (glyphDriver.buttonBackgroundImage != null)
                 {
-                    glyphImages.Add(glyphDriver.buttonBackgroundImage);
+                    row.glyphImages.Add(glyphDriver.buttonBackgroundImage);
                 }
                 Destroy(glyphDriver);
             }
@@ -211,13 +264,7 @@ namespace CustomBlocks.Backgrounds.UI
                 Destroy(localize);
             }
 
-            CursorControlHintButton row = clone.GetComponent<CursorControlHintButton>();
-            if (row != null)
-            {
-                label = row.buttonText;
-            }
-
-            return row;
+            return row.button != null && EdgeGlyph(rect, true) != null ? row : null;
         }
 
         void OnDestroy()
@@ -227,11 +274,11 @@ namespace CustomBlocks.Backgrounds.UI
             DestroyRow(highlightRow);
         }
 
-        static void DestroyRow(CursorControlHintButton row)
+        static void DestroyRow(Row row)
         {
-            if (row != null)
+            if (row != null && row.rect != null)
             {
-                Destroy(row.gameObject);
+                Destroy(row.rect.gameObject);
             }
         }
 
@@ -252,6 +299,11 @@ namespace CustomBlocks.Backgrounds.UI
             Show(modeRow, visible);
             Show(layerRow, visible && background);
             Show(highlightRow, visible && background);
+
+            if (visible)
+            {
+                Layout();
+            }
         }
 
         // The same condition PiecePlacementCursor.UIUpdate guards its own hint
@@ -276,9 +328,21 @@ namespace CustomBlocks.Backgrounds.UI
                 return;
             }
 
-            for (int i = 0; i < glyphImages.Count; i++)
+            SyncGlyphSprite(modeRow);
+            SyncGlyphSprite(layerRow);
+            SyncGlyphSprite(highlightRow);
+        }
+
+        void SyncGlyphSprite(Row row)
+        {
+            if (row == null)
             {
-                Image glyph = glyphImages[i];
+                return;
+            }
+
+            for (int i = 0; i < row.glyphImages.Count; i++)
+            {
+                Image glyph = row.glyphImages[i];
                 if (glyph == null)
                 {
                     continue;
@@ -296,15 +360,87 @@ namespace CustomBlocks.Backgrounds.UI
         }
 
         // Never passes highlighted: the authored highlight colours are near-invisible
-        // against the level, so on/off state is carried in the label text instead.
-        static void Show(CursorControlHintButton row, bool visible)
+        // against the level, so on/off state is a tint on the key box instead.
+        static void Show(Row row, bool visible)
         {
-            if (row != null)
+            if (row != null && row.button != null)
             {
                 // textKey null leaves the label alone: it is set directly in
                 // Refresh rather than through I2 localization.
-                row.SetVisible(visible, null, false);
+                row.button.SetVisible(visible, null, false);
             }
+        }
+
+        // Anchors the stack to the Inventory row's key box, which does not move as
+        // the game shows and hides its other rows — so the toggles stay put instead
+        // of shuffling under the cursor.
+        void Layout()
+        {
+            if (rows == null || inventoryRow == null || !inventoryRow.gameObject.activeSelf)
+            {
+                return;
+            }
+
+            RectTransform anchorGlyph = null;
+            foreach (Transform child in inventoryRow.transform)
+            {
+                if (!child.name.Contains("MultiControllerButton"))
+                {
+                    continue;
+                }
+
+                var glyph = (RectTransform)child;
+                if (anchorGlyph == null || glyph.anchoredPosition.x > anchorGlyph.anchoredPosition.x)
+                {
+                    anchorGlyph = glyph;
+                }
+            }
+
+            if (anchorGlyph == null)
+            {
+                return;
+            }
+
+            Vector3 anchor = rows.InverseTransformPoint(anchorGlyph.position);
+
+            PlaceRow(modeRow, anchor, 0);
+            PlaceRow(layerRow, anchor, 1);
+            PlaceRow(highlightRow, anchor, 2);
+        }
+
+        void PlaceRow(Row row, Vector3 anchor, int step)
+        {
+            if (row == null)
+            {
+                return;
+            }
+
+            RectTransform rightGlyph = EdgeGlyph(row.rect, true);
+            RectTransform leftGlyph = EdgeGlyph(row.rect, false);
+            if (rightGlyph == null || leftGlyph == null)
+            {
+                return;
+            }
+
+            // Label right-aligned against the leftmost key box, sized to its own
+            // text so it grows leftwards as the layer name changes.
+            if (row.label != null)
+            {
+                var text = (RectTransform)row.label.transform;
+                text.pivot = new Vector2(1f, 0.5f);
+                text.sizeDelta = new Vector2(row.label.preferredWidth, text.sizeDelta.y);
+                text.anchoredPosition = new Vector2(
+                    leftGlyph.anchoredPosition.x - leftGlyph.sizeDelta.x * 0.5f - labelGap,
+                    leftGlyph.anchoredPosition.y);
+            }
+
+            // Shift by the delta between where our rightmost box is and where it
+            // should be: the rows carry different anchors and pivots, so moving
+            // them by measurement avoids converting each one's frame by hand.
+            Vector3 current = rows.InverseTransformPoint(rightGlyph.position);
+            row.rect.anchoredPosition += new Vector2(
+                (anchor.x - inventoryGap + ArcX(step)) - current.x,
+                (anchor.y + step * rowStep) - current.y);
         }
 
         public void Refresh()
@@ -314,21 +450,20 @@ namespace CustomBlocks.Backgrounds.UI
                 return;
             }
 
-            SetRow(modeRow, modeLabel,
-                new KeyCode[] { CustomBlocksMod.ToggleBackgroundKey.Value },
-                CustomBlocksMod.enableBackgroundMode ? "Background: On" : "Background: Off");
+            SetRow(modeRow, new KeyCode[] { CustomBlocksMod.ToggleBackgroundKey.Value }, "Background");
 
             // Previous key first, so the pair reads in the direction it cycles,
             // matching Rotate's Q/E.
-            SetRow(layerRow, layerLabel,
+            SetRow(layerRow,
                 new KeyCode[] { CustomBlocksMod.PrevLayerKey.Value, CustomBlocksMod.SwitchLayerKey.Value },
                 "Layer: " + CurrentLayerName());
 
-            SetRow(highlightRow, highlightLabel,
-                new KeyCode[] { CustomBlocksMod.HighlightBlockKey.Value },
-                CustomBlocksMod.highlightSelectedLayer ? "Highlight: On" : "Highlight: Off");
+            SetRow(highlightRow, new KeyCode[] { CustomBlocksMod.HighlightBlockKey.Value }, "Highlight");
 
-            Layout();
+            // On/off lives on the key box, not in the text: the state is already
+            // obvious from the blocks themselves, so the cue can stay quiet.
+            Tint(modeRow, CustomBlocksMod.enableBackgroundMode);
+            Tint(highlightRow, CustomBlocksMod.highlightSelectedLayer);
         }
 
         static string CurrentLayerName()
@@ -342,19 +477,42 @@ namespace CustomBlocks.Backgrounds.UI
             return SortingLayer.layers[index].name;
         }
 
-        static void SetRow(CursorControlHintButton row, Text label, KeyCode[] keys, string text)
+        static void Tint(Row row, bool on)
         {
-            if (label != null)
+            if (row == null)
             {
-                label.text = text;
+                return;
+            }
+
+            Color wanted = on ? activeTint : Color.white;
+            for (int i = 0; i < row.glyphImages.Count; i++)
+            {
+                Image glyph = row.glyphImages[i];
+                if (glyph != null && glyph.color != wanted)
+                {
+                    glyph.color = wanted;
+                }
+            }
+        }
+
+        static void SetRow(Row row, KeyCode[] keys, string text)
+        {
+            if (row == null)
+            {
+                return;
+            }
+
+            if (row.label != null)
+            {
+                row.label.text = text;
             }
 
             // Assign left to right, so a two-key row reads in layout order rather
             // than in whatever order GetComponentsInChildren happens to walk.
-            List<Text> overlays = new List<Text>();
-            foreach (Text child in row.GetComponentsInChildren<Text>(true))
+            var overlays = new List<Text>();
+            foreach (Text child in row.rect.GetComponentsInChildren<Text>(true))
             {
-                if (child != label && child.name == "ButtonTextOverlay")
+                if (child != row.label && child.name == "ButtonTextOverlay")
                 {
                     overlays.Add(child);
                 }
@@ -380,61 +538,6 @@ namespace CustomBlocks.Backgrounds.UI
         static int CompareByX(Text a, Text b)
         {
             return a.transform.position.x.CompareTo(b.transform.position.x);
-        }
-
-        // Stacks the mod's rows under the game's keyboard hint rows. The game's row
-        // positions are authored, not laid out by a layout group, so the bottom of
-        // the stack has to be measured. The alt (controller) rows sit lower still
-        // and are ignored on purpose: these shortcuts are keyboard-only.
-        void Layout()
-        {
-            float bottom = float.MaxValue;
-            foreach (CursorControlHintButton button in cursor.cursorControlHints.hintButtons)
-            {
-                if (button == null || button.name.StartsWith(clonePrefix))
-                {
-                    continue;
-                }
-
-                ((RectTransform)button.transform).GetWorldCorners(cornerCache);
-                for (int i = 0; i < cornerCache.Length; i++)
-                {
-                    float y = rows.InverseTransformPoint(cornerCache[i]).y;
-                    if (y < bottom)
-                    {
-                        bottom = y;
-                    }
-                }
-            }
-
-            if (bottom == float.MaxValue)
-            {
-                return;
-            }
-
-            float firstCenter = bottom - stackGap - rowHeight * 0.5f;
-            PlaceRow(modeRow, firstCenter);
-            PlaceRow(layerRow, firstCenter - rowSpacing);
-            PlaceRow(highlightRow, firstCenter - rowSpacing * 2f);
-        }
-
-        void PlaceRow(CursorControlHintButton row, float centerY)
-        {
-            if (row == null)
-            {
-                return;
-            }
-
-            // The authored rows do not share anchors — Inventory is anchored to the
-            // top of the container, Rotate to the middle — so a target centre has to
-            // be converted through whichever anchor this row actually uses.
-            var rect = (RectTransform)row.transform;
-            float anchorFraction = (rect.anchorMin.y + rect.anchorMax.y) * 0.5f;
-            float anchorLocalY = (anchorFraction - rows.pivot.y) * rows.rect.height;
-
-            rect.anchoredPosition = new Vector2(
-                rect.anchoredPosition.x,
-                centerY - anchorLocalY);
         }
     }
 }
