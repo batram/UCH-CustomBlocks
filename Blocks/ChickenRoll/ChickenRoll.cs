@@ -34,7 +34,7 @@ namespace CustomBlocks.Blocks
             {
                 if (_sound == null)
                 {
-                    _sound = new SoundPlayer(Path.Combine(AssetDir, this.Name + ".wav"));
+                    _sound = new SoundPlayer(OpenAsset(this.Name + ".wav"));
                     _sound.Load();
                 }
                 return _sound;

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using UnityEngine;
 
 namespace CustomBlocks.Core
@@ -24,6 +25,61 @@ namespace CustomBlocks.Core
         public virtual string AssetDir
         {
             get { return Path.Combine(Path.GetDirectoryName(GetType().Assembly.Location), "assets"); }
+        }
+
+        // The bytes of one of this block's assets. Blocks are read through here
+        // rather than straight off disk so a block can choose where its art
+        // lives: an asset embedded in the defining assembly wins over a file in
+        // AssetDir, so a block can bake its art into its own DLL and have
+        // nothing left to deploy.
+        //
+        // Worth preferring, because this runs during
+        // PlaceableMetadataList.Awake: a file that failed to deploy throws from
+        // inside that Awake, the game then never assigns
+        // PlaceableMetadataList.instance, GameSettings can never build its item
+        // filter, and the main menu dies on the first ReadBlockSettings.
+        public virtual byte[] ReadAsset(string file)
+        {
+            Assembly assembly = GetType().Assembly;
+            string resource = FindEmbeddedAsset(assembly, file);
+            if (resource != null)
+            {
+                using (Stream stream = assembly.GetManifestResourceStream(resource))
+                {
+                    byte[] embedded = new byte[stream.Length];
+                    int read = 0;
+                    while (read < embedded.Length)
+                    {
+                        int n = stream.Read(embedded, read, embedded.Length - read);
+                        if (n <= 0) break;
+                        read += n;
+                    }
+                    return embedded;
+                }
+            }
+            return File.ReadAllBytes(Path.Combine(AssetDir, file));
+        }
+
+        // Same asset, as a stream — for APIs that take one, such as
+        // System.Media.SoundPlayer.
+        public Stream OpenAsset(string file)
+        {
+            return new MemoryStream(ReadAsset(file));
+        }
+
+        // Embedded resource names are prefixed with the defining project's root
+        // namespace and folders, so match on the trailing file name.
+        static string FindEmbeddedAsset(Assembly assembly, string file)
+        {
+            foreach (string name in assembly.GetManifestResourceNames())
+            {
+                if (string.Equals(name, file, System.StringComparison.OrdinalIgnoreCase)
+                    || name.EndsWith("." + file, System.StringComparison.OrdinalIgnoreCase))
+                {
+                    return name;
+                }
+            }
+            return null;
         }
 
         public virtual Rect SpriteRect { get { return new Rect(0, 0, 54, 54); } }
@@ -59,7 +115,7 @@ namespace CustomBlocks.Core
 
         protected Sprite LoadSprite(string file)
         {
-            Texture2D texture = LoadTexture(Path.Combine(AssetDir, file));
+            Texture2D texture = CreateTexture(ReadAsset(file), Path.GetFileNameWithoutExtension(file));
             Sprite s = Sprite.Create(texture, SpriteRect, SpritePivot, 100f);
             Object.DontDestroyOnLoad(s);
             return s;
@@ -282,11 +338,14 @@ namespace CustomBlocks.Core
 
         public static Texture2D LoadTexture(string path)
         {
-            byte[] data = File.ReadAllBytes(path);
+            return CreateTexture(File.ReadAllBytes(path), Path.GetFileNameWithoutExtension(path));
+        }
 
+        public static Texture2D CreateTexture(byte[] data, string name)
+        {
             Texture2D texture = new Texture2D(1, 1, TextureFormat.ARGB32, false);
             texture.LoadImage(data);
-            texture.name = Path.GetFileNameWithoutExtension(path);
+            texture.name = name;
 
             return texture;
         }

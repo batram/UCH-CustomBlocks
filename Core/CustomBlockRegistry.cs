@@ -195,10 +195,23 @@ namespace CustomBlocks.Core
                 slot += 1;
             }
 
+            // A block that cannot build its prefab is fatal, and deliberately so:
+            // this runs from PlaceableMetadataList.Awake, and continuing without
+            // it means the game comes up with no metadata list and dies later at
+            // the main menu with a KeyNotFoundException naming a vanilla block.
+            // Fail here, naming the block that is actually broken.
             List<Placeable> prefabs = new List<Placeable>();
             foreach (CustomBlock definition in definitions)
             {
-                prefabs.Add(definition.PlaceablePrefab);
+                try
+                {
+                    prefabs.Add(definition.PlaceablePrefab);
+                }
+                catch (Exception e)
+                {
+                    throw new Exception("CustomBlocks: block '" + definition.Name + "' ("
+                        + definition.GetType() + ") failed to build its prefab - see inner exception", e);
+                }
             }
 
             slot = OriginalBlockCount;

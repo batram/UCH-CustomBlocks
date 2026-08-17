@@ -184,15 +184,58 @@ string.Join(
   `decompiled_UCH\UCH-decomp_1.13\` under the UCH development directory. Prefer
   it over ad-hoc decompilation of `Assembly-CSharp.dll`.
 
+## Assets are baked into the DLL — never shipped as loose files
+
+**Rule: every block asset — sprites, sounds, anything else — is an
+`EmbeddedResource` in the assembly that defines the block. A mod deploys its
+DLL and nothing else. There is no `assets\` folder to deploy.**
+
+In the csproj, one level deep per block folder, with the lookup name pinned to
+the bare file name:
+
+```xml
+<EmbeddedResource Include="Blocks\*\*.png;Blocks\*\*.wav">
+  <LogicalName>%(Filename)%(Extension)</LogicalName>
+</EmbeddedResource>
+```
+
+In code, read assets through `CustomBlock.ReadAsset(file)` (bytes) or
+`OpenAsset(file)` (stream, for APIs like `System.Media.SoundPlayer`). Never
+build a path from `AssetDir` yourself. `LoadSprite` already goes through this.
+`ReadAsset` prefers an embedded asset and falls back to a file in `AssetDir`;
+that fallback exists only so third-party blocks that still ship files keep
+working — blocks in these repos must not rely on it.
+
+Why, concretely: asset loading runs from `CustomBlockRegistry.InitBlocks`, which
+runs from `PlaceableMetadataList.Awake`. A file that failed to deploy throws out
+of that `Awake`, the game never assigns `PlaceableMetadataList.instance`,
+`GameSettings` can never build its item filter, and the main menu dies on the
+first `ReadBlockSettings` with a `KeyNotFoundException` naming a *vanilla*
+block. That is a long way from the real cause, and it is exactly what a broken
+`PigFarmButton` deploy did on 2026-08-17. Embedded art cannot be lost by a
+deploy step, which removes the failure mode instead of catching it. See
+`glorpy_knowledge/customblock-prefab-failure-bricks-main-menu.md`.
+
+Two supporting rules:
+
+- **Keep the glob one level deep.** The per-block `Sprite\` folders hold working
+  files (frames extracted from the game) and must not ship. The old flattening
+  copy used `for /r`, swept those in, and shipped 43 of them.
+- **A duplicate asset file name is now a build error** (CS1508), because
+  `LogicalName` must be unique. The old copy silently resolved
+  case-insensitive collisions — `Acid\Sprite\ACid.png` landed on
+  `Acid\Acid.png`, and which survived was decided by directory order.
+
+A block that cannot build its prefab is fatal on purpose: `InitBlocks` rethrows
+naming the block, rather than dropping it and letting the game fail later
+somewhere unrelated.
+
 ## Build side effects (read before running a build)
 
 `CustomBlocks.csproj` build events are not side-effect free:
 
-- **PreBuild** runs `taskkill /f UltimateChickenHorse.exe`, then flattens every
-  `Blocks\**\*.png` and `*.wav` into `assets\` with `copy /y`. It never cleans,
-  so `assets\` accumulates files from deleted blocks and filenames that collide
-  case-insensitively silently overwrite each other.
-- **PostBuild** copies the DLL and `assets\*` into
+- **PreBuild** runs `taskkill /f UltimateChickenHorse.exe`.
+- **PostBuild** copies the DLL into
   `$(UCHfolder)\BepInEx\plugins\CustomBlocks\` — overwriting the live install —
   and then runs `start explorer.exe "steam://rungameid/386940"`, which
   **launches the game on the visible desktop**.

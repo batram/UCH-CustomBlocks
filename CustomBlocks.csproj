@@ -81,35 +81,33 @@
   <ItemGroup>
     <Publicize Include="Assembly-CSharp" />
   </ItemGroup>
-  
+
+  <ItemGroup>
+    <!-- Every block asset is baked into the DLL; nothing ships as a loose file.
+         CustomBlock.ReadAsset/OpenAsset look assets up by bare file name, which
+         is what LogicalName pins here.
+
+         The glob is deliberately one level deep ("Blocks\*\*"), not recursive:
+         the per-block Sprite\ folders are working files (frames extracted from
+         the game) and must not ship. The old flattening copy used "for /r",
+         which swept those in, and silently resolved case-insensitive collisions
+         like Acid\Sprite\ACid.png onto Acid\Acid.png by directory order.
+         Two assets with the same file name are now a build error (CS1508)
+         rather than one quietly overwriting the other. -->
+    <EmbeddedResource Include="Blocks\*\*.png;Blocks\*\*.wav">
+      <LogicalName>%(Filename)%(Extension)</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+
   <PropertyGroup>
     <PostBuildEvent>
       if not exist  "$(UCHfolder)\BepInEx\plugins\" mkdir "$(UCHfolder)\BepInEx\plugins\"
       if not exist  "$(UCHfolder)\BepInEx\plugins\CustomBlocks\" mkdir "$(UCHfolder)\BepInEx\plugins\CustomBlocks\"
-      copy "CustomBlocksMod.dll" "$(UCHfolder)\BepInEx\plugins\CustomBlocks" /y
-
-      if not exist  "$(UCHfolder)\BepInEx\plugins\CustomBlocks\assets\" mkdir "$(UCHfolder)\BepInEx\plugins\CustomBlocks\assets\"
-      copy "assets\*" "$(UCHfolder)\BepInEx\plugins\CustomBlocks\assets\" /y
+      copy "$(MSBuildProjectDirectory)\$(OutputPath)\CustomBlocksMod.dll" "$(UCHfolder)\BepInEx\plugins\CustomBlocks" /y
 
       start explorer.exe "steam://rungameid/386940"
     </PostBuildEvent>
     <PreBuildEvent>
-      rem assets\ is rebuilt from scratch, one level per block folder.
-      rem
-      rem "for /r" recursed into the per-block Sprite\ working folders, so the
-      rem shipped plugin carried 43 frames extracted from the game itself, and
-      rem Acid\Sprite\ACid.png collapsed onto Acid\Acid.png because Windows
-      rem filenames are case-insensitive — which of the two survived was
-      rem decided by directory order. Nothing cleaned either, so assets\ still
-      rem held PigFarmButton.png/.wav and chr.png from blocks deleted long ago.
-      rem
-      rem Blocks load their assets as "&lt;Name&gt;.png" (plus the RC blocks'
-      rem "_selection_indicator.png"), and every one of those lives directly in
-      rem its block folder — so one level is exactly the set that is needed.
-      if exist "assets" rmdir /s /q "assets"
-      mkdir "assets"
-      for /d %%d in ("..\..\Blocks\*") do @if exist "%%d\*.png" copy "%%d\*.png" "assets" /y
-      for /d %%d in ("..\..\Blocks\*") do @if exist "%%d\*.wav" copy "%%d\*.wav" "assets" /y
       taskkill /f /fi "imagename eq UltimateChickenHorse.exe"
     </PreBuildEvent>
   </PropertyGroup>
