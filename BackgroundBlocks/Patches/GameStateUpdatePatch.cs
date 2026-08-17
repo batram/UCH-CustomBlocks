@@ -14,10 +14,13 @@ namespace CustomBlocks.Backgrounds.Patches
                 {
                     LayerSelectionGUI.ToggleBackgroundMode();
                 }
+                if (Input.GetKeyDown(CustomBlocksMod.PrevLayerKey.Value))
+                {
+                    LayerSelectionGUI.CycleLayer(true);
+                }
                 if (Input.GetKeyDown(CustomBlocksMod.SwitchLayerKey.Value))
                 {
-                    bool reverse = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
-                    LayerSelectionGUI.CycleLayer(reverse);
+                    LayerSelectionGUI.CycleLayer(false);
                 }
                 if (Input.GetKeyDown(CustomBlocksMod.HighlightBlockKey.Value))
                 {

@@ -153,8 +153,20 @@ namespace CustomBlocks.Backgrounds.UI
                 break;
             }
 
+            // The layer row shows two keys, so it clones the Rotate row — the
+            // game's own two-key template (Q/E) — rather than the one-key one.
+            CursorControlHintButton pairTemplate = template;
+            foreach (CursorControlHintButton button in cursor.cursorControlHints.hintButtons)
+            {
+                if (button != null && button.button == CursorControlHints.Button.Rotate)
+                {
+                    pairTemplate = button;
+                    break;
+                }
+            }
+
             modeRow = CloneRow(template, "Mode", out modeLabel);
-            layerRow = CloneRow(template, "Layer", out layerLabel);
+            layerRow = CloneRow(pairTemplate, "Layer", out layerLabel);
             highlightRow = CloneRow(template, "Highlight", out highlightLabel);
 
             return modeRow != null && layerRow != null && highlightRow != null;
@@ -232,14 +244,29 @@ namespace CustomBlocks.Backgrounds.UI
 
             SyncGlyphSprite();
 
-            bool inPlace = CustomBlocksMod.InFreePlace();
+            bool visible = CustomBlocksMod.InFreePlace() && HintsLive();
             bool background = CustomBlocksMod.enableBackgroundMode;
 
             // The mode row always shows during building, so the feature is
             // discoverable; the other two only mean anything once it is on.
-            Show(modeRow, inPlace);
-            Show(layerRow, inPlace && background);
-            Show(highlightRow, inPlace && background);
+            Show(modeRow, visible);
+            Show(layerRow, visible && background);
+            Show(highlightRow, visible && background);
+        }
+
+        // The same condition PiecePlacementCursor.UIUpdate guards its own hint
+        // updates with (PiecePlacementCursor.cs:843). Opening the inventory book
+        // freezes the cursor, which hides the game's rows; without this our rows
+        // are not registered anywhere the game hides, so they would linger on
+        // screen over the open book.
+        bool HintsLive()
+        {
+            if (cursor == null || cursor.frozen || cursor.placementPhysicsLock)
+            {
+                return false;
+            }
+
+            return cursor.AssociatedGamePlayer != null && cursor.AssociatedGamePlayer.IsLocalPlayer;
         }
 
         void SyncGlyphSprite()
@@ -287,11 +314,18 @@ namespace CustomBlocks.Backgrounds.UI
                 return;
             }
 
-            SetRow(modeRow, modeLabel, CustomBlocksMod.ToggleBackgroundKey.Value,
+            SetRow(modeRow, modeLabel,
+                new KeyCode[] { CustomBlocksMod.ToggleBackgroundKey.Value },
                 CustomBlocksMod.enableBackgroundMode ? "Background: On" : "Background: Off");
-            SetRow(layerRow, layerLabel, CustomBlocksMod.SwitchLayerKey.Value,
+
+            // Previous key first, so the pair reads in the direction it cycles,
+            // matching Rotate's Q/E.
+            SetRow(layerRow, layerLabel,
+                new KeyCode[] { CustomBlocksMod.PrevLayerKey.Value, CustomBlocksMod.SwitchLayerKey.Value },
                 "Layer: " + CurrentLayerName());
-            SetRow(highlightRow, highlightLabel, CustomBlocksMod.HighlightBlockKey.Value,
+
+            SetRow(highlightRow, highlightLabel,
+                new KeyCode[] { CustomBlocksMod.HighlightBlockKey.Value },
                 CustomBlocksMod.highlightSelectedLayer ? "Highlight: On" : "Highlight: Off");
 
             Layout();
@@ -308,21 +342,44 @@ namespace CustomBlocks.Backgrounds.UI
             return SortingLayer.layers[index].name;
         }
 
-        static void SetRow(CursorControlHintButton row, Text label, KeyCode key, string text)
+        static void SetRow(CursorControlHintButton row, Text label, KeyCode[] keys, string text)
         {
             if (label != null)
             {
                 label.text = text;
             }
 
+            // Assign left to right, so a two-key row reads in layout order rather
+            // than in whatever order GetComponentsInChildren happens to walk.
+            List<Text> overlays = new List<Text>();
             foreach (Text child in row.GetComponentsInChildren<Text>(true))
             {
                 if (child != label && child.name == "ButtonTextOverlay")
                 {
-                    child.text = key.ToString();
-                    child.enabled = true;
+                    overlays.Add(child);
                 }
             }
+            overlays.Sort(CompareByX);
+
+            for (int i = 0; i < overlays.Count; i++)
+            {
+                Text overlay = overlays[i];
+                if (i < keys.Length)
+                {
+                    overlay.text = keys[i].ToString();
+                    overlay.enabled = true;
+                }
+                else
+                {
+                    // Template had more key boxes than this row needs.
+                    overlay.enabled = false;
+                }
+            }
+        }
+
+        static int CompareByX(Text a, Text b)
+        {
+            return a.transform.position.x.CompareTo(b.transform.position.x);
         }
 
         // Stacks the mod's rows under the game's keyboard hint rows. The game's row
@@ -368,13 +425,16 @@ namespace CustomBlocks.Backgrounds.UI
                 return;
             }
 
-            // The rows container is anchored to its parent's corners, so the rows'
-            // own anchor sits at its top edge: convert a local centre into the
-            // anchored offset the authored rows use.
+            // The authored rows do not share anchors — Inventory is anchored to the
+            // top of the container, Rotate to the middle — so a target centre has to
+            // be converted through whichever anchor this row actually uses.
             var rect = (RectTransform)row.transform;
+            float anchorFraction = (rect.anchorMin.y + rect.anchorMax.y) * 0.5f;
+            float anchorLocalY = (anchorFraction - rows.pivot.y) * rows.rect.height;
+
             rect.anchoredPosition = new Vector2(
                 rect.anchoredPosition.x,
-                centerY - rows.rect.height * 0.5f);
+                centerY - anchorLocalY);
         }
     }
 }

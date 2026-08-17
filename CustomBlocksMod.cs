@@ -30,6 +30,7 @@ namespace CustomBlocks
         public static ConfigEntry<bool> CustomBlocksEnabled;
 
         public static ConfigEntry<KeyCode> ToggleBackgroundKey;
+        public static ConfigEntry<KeyCode> PrevLayerKey;
         public static ConfigEntry<KeyCode> SwitchLayerKey;
         public static ConfigEntry<KeyCode> HighlightBlockKey;
 
@@ -71,7 +72,8 @@ namespace CustomBlocks
             }
 
             ToggleBackgroundKey = Config.Bind("INPUT", "ToggleBackgroundKey", KeyCode.G, "Keybinding: Toggle background mode for blocks");
-            SwitchLayerKey = Config.Bind("INPUT", "SwitchLayerKey", KeyCode.L, "Keybinding: Switch to layer");
+            PrevLayerKey = Config.Bind("INPUT", "PrevLayerKey", KeyCode.K, "Keybinding: Switch to the previous layer");
+            SwitchLayerKey = Config.Bind("INPUT", "SwitchLayerKey", KeyCode.L, "Keybinding: Switch to the next layer");
             HighlightBlockKey = Config.Bind("INPUT", "HighlightBlockKey", KeyCode.H, "Keybinding: Highlight blocks on current layer");
         }
 
