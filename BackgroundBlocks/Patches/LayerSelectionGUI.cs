@@ -1,102 +1,12 @@
-using HarmonyLib;
-using System.Collections.Generic;
+using CustomBlocks.Backgrounds.UI;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace CustomBlocks.Backgrounds.Patches
 {
-    [HarmonyPatch(typeof(FreeplayFullMessage), nameof(FreeplayFullMessage.Awake))]
-    static class FreeplayFullMessagePatch
-    {
-        static void Prefix(FreeplayFullMessage __instance)
-        {
-            Debug.Log("FreeplayFullMessage 12 awoken: " + __instance.name);
-            DefaultControls.Resources uiResources = new DefaultControls.Resources();
-
-            List<string> m_DropOptions = new List<string> {};
-
-            for (int i = 0; i < SortingLayer.layers.Length; i++)
-            {
-                var s = SortingLayer.layers[i];
-                m_DropOptions.Add(s.name);
-            }
-
-
-            var canvas_go = new GameObject();
-            canvas_go.name = "HighlightCanvas";
-            Canvas can = canvas_go.AddComponent<Canvas>();
-            canvas_go.transform.SetParent(__instance.transform, false);
-
-            var mgo = GameObject.Find("Fullness Message/Container/Message");
-            canvas_go.transform.position = mgo.transform.position - new Vector3(100f, 150f);
-
-
-            can.renderMode = RenderMode.ScreenSpaceOverlay;
-            canvas_go.AddComponent<CanvasScaler>();
-            canvas_go.AddComponent<GraphicRaycaster>();
-
-            
-
-            GameObject highlight_toggle_go = DefaultControls.CreateToggle(uiResources);
-            highlight_toggle_go.AddComponent<LayoutElement>();
-            highlight_toggle_go.transform.SetParent(canvas_go.transform, false);
-            highlight_toggle_go.name = "HighlightToggle";
-            Toggle highlight_toggle = highlight_toggle_go.GetComponent<Toggle>();
-            highlight_toggle.transform.localPosition = new Vector2(180f, 0f);
-
-            Text text = highlight_toggle.GetComponentInChildren<Text>();
-            text.text = "Highlight";
-            text.fontSize = 16;
-            highlight_toggle.isOn = CustomBlocksMod.highlightSelectedLayer;
-
-            highlight_toggle.onValueChanged.AddListener((value) => {  
-                text.text = "Highlight " + value;
-                LayerSelectionGUI.NotifyChanged("Highlight Layer", CustomBlocksMod.highlightSelectedLayer);
-                CustomBlocksMod.highlightSelectedLayer = highlight_toggle.isOn;
-                PlaceableHighlighter.HighlightUpdateAll();
-            });
-     
-            GameObject layer_dropdown_go = DefaultControls.CreateDropdown(uiResources);
-            layer_dropdown_go.name = "LayerDropdown";
-            layer_dropdown_go.transform.SetParent(canvas_go.transform, false);
-
-            var layer_dropdown = layer_dropdown_go.GetComponent<Dropdown>();
-            layer_dropdown.ClearOptions();
-            layer_dropdown.AddOptions(m_DropOptions);
-            layer_dropdown.Select();
-            layer_dropdown.value = CustomBlocksMod.selectedLayer;
-
-            layer_dropdown.onValueChanged.AddListener((value) => {
-                CustomBlocksMod.selectedLayer = value;
-                UserMessageManager.Instance.UserMessage("Layer selected: " + SortingLayer.layers[CustomBlocksMod.selectedLayer].name.PadLeft(20, ' '));
-                LayerSelectionGUI.UpdatePicked();
-                PlaceableHighlighter.HighlightUpdateAll();
-            });
-        }
-    }
-
-    [HarmonyPatch(typeof(FreeplayFullMessage), nameof(FreeplayFullMessage.handleEvent))]
-    static class FreeplayFullMessageHandleEventPatch
-    {
-        static void Prefix(GameEvent.GameEvent e)
-        {
-            var HighlightCanvas = GameObject.Find("HighlightCanvas");
-
-            if (e.GetType() == typeof(GameEvent.StartPhaseEvent))
-            {
-                if((e as GameEvent.StartPhaseEvent).Phase == GameControl.GamePhase.PLACE){
-                    Debug.Log("FreeplayFullMessage handleEvent PLACE!");
-                    HighlightCanvas.transform.GetChild(0)?.gameObject.SetActive(true);
-                    HighlightCanvas.transform.GetChild(1)?.gameObject.SetActive(true);
-                } else
-                {
-                    HighlightCanvas.transform.GetChild(0)?.gameObject.SetActive(false);
-                    HighlightCanvas.transform.GetChild(1)?.gameObject.SetActive(false);
-                }
-            }
-        }
-    }
-
+    // Every background-layer state change funnels through here, whether it came
+    // from a keybind or anywhere else, so the paths cannot disagree about what a
+    // change entails. The cursor hint rows are told what to display; they never
+    // decide.
     static class LayerSelectionGUI
     {
         public static void NotifyChanged(string name, bool value)
@@ -104,22 +14,93 @@ namespace CustomBlocks.Backgrounds.Patches
             UserMessageManager.Instance.UserMessage($"{name} {(value ? "Enabled" : "Disabled")}");
         }
 
-        public static void UpdatePicked()
+        public static void ToggleBackgroundMode()
         {
-            foreach (PiecePlacementCursor cur in Object.FindObjectsOfType<PiecePlacementCursor>())
+            CustomBlocksMod.enableBackgroundMode = !CustomBlocksMod.enableBackgroundMode;
+
+            NotifyChanged("Background Block Mode", CustomBlocksMod.enableBackgroundMode);
+
+            Apply();
+        }
+
+        public static void ToggleHighlight()
+        {
+            SetHighlight(!CustomBlocksMod.highlightSelectedLayer);
+        }
+
+        public static void SetHighlight(bool on)
+        {
+            CustomBlocksMod.highlightSelectedLayer = on;
+
+            NotifyChanged("Highlight Layer", on);
+
+            Apply();
+        }
+
+        public static void CycleLayer(bool reverse)
+        {
+            int count = SortingLayer.layers.Length;
+            if (count == 0)
             {
-                if (cur.Piece)
+                return;
+            }
+
+            SetLayer(((CustomBlocksMod.selectedLayer + (reverse ? -1 : 1)) % count + count) % count);
+        }
+
+        public static void SetLayer(int index)
+        {
+            if (index < 0 || index >= SortingLayer.layers.Length)
+            {
+                return;
+            }
+
+            CustomBlocksMod.selectedLayer = index;
+
+            UserMessageManager.Instance.UserMessage(
+                "Layer selected: " + SortingLayer.layers[index].name.PadLeft(20, ' '));
+
+            Apply();
+        }
+
+        static void Apply()
+        {
+            CursorLayerHints.RefreshAll();
+            UpdatePickedLocal();
+            PlaceableHighlighter.HighlightUpdateAll();
+        }
+
+        // Applies the current selection to the cursors this client owns.
+        //
+        // This used to walk every PiecePlacementCursor in the scene, which meant
+        // one player's layer choice rewrote the piece held by every other player,
+        // remote ones included.
+        public static void UpdatePickedLocal()
+        {
+            foreach (PiecePlacementCursor cursor in Object.FindObjectsOfType<PiecePlacementCursor>())
+            {
+                if (cursor != null && cursor.hasAuthority)
                 {
-                    if (CustomBlocksMod.enableBackgroundMode)
-                    {
-                        BackgroundBlock mbi = CustomBlocksMod.EnableBackgroundBlock(cur.Piece.gameObject);
-                        mbi.layer = SortingLayer.layers[CustomBlocksMod.selectedLayer].name;
-                    }
-                    else
-                    {
-                        CustomBlocksMod.DisableBackgroundBlock(cur.Piece.gameObject);
-                    }
+                    UpdatePicked(cursor);
                 }
+            }
+        }
+
+        public static void UpdatePicked(PiecePlacementCursor cursor)
+        {
+            if (cursor == null || cursor.Piece == null)
+            {
+                return;
+            }
+
+            if (CustomBlocksMod.enableBackgroundMode)
+            {
+                BackgroundBlock mbi = CustomBlocksMod.EnableBackgroundBlock(cursor.Piece.gameObject);
+                mbi.layer = SortingLayer.layers[CustomBlocksMod.selectedLayer].name;
+            }
+            else
+            {
+                CustomBlocksMod.DisableBackgroundBlock(cursor.Piece.gameObject);
             }
         }
     }
