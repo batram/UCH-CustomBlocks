@@ -34,6 +34,12 @@ namespace CustomBlocks.Backgrounds.UI
 
         const float labelGap = 8f;
 
+        // The modifier tag: small enough to read as an annotation rather than a
+        // second key, and pulled in over the button it annotates.
+        const float badgeScale = 0.52f;
+        const float badgePadding = 6f;
+        static readonly Vector2 badgeOffset = new Vector2(-16f, -14f);
+
         static readonly Color activeTint = new Color(1f, 0.84f, 0.42f);
 
         static readonly Dictionary<PiecePlacementCursor, CursorLayerHints> instances =
@@ -61,6 +67,101 @@ namespace CustomBlocks.Backgrounds.UI
             public RectTransform rect;
             public Text label;
             public readonly List<Image> glyphImages = new List<Image>();
+
+            // One per key box, left to right once ordered at update time.
+            public readonly List<MultiControllerButton> drivers = new List<MultiControllerButton>();
+            public readonly List<Badge> badges = new List<Badge>();
+
+            // Which controller button each box stands for, and the keyboard key it
+            // shows instead when the player is on a keyboard.
+            public System.Func<PadButton>[] padButtons;
+            public System.Func<KeyCode>[] keyboardKeys;
+        }
+
+        // The little "R2" tag in the corner of a key box, saying the binding is a
+        // chord. Cloned from the box's own letter so it inherits font and styling,
+        // and backed by the game's own key-cap sprite so it reads as a miniature
+        // key rather than floating text — which was too faint over a bright level.
+        static Badge MakeBadge(MultiControllerButton driver)
+        {
+            if (driver.buttonText == null)
+            {
+                return null;
+            }
+
+            GameObject label = Instantiate(driver.buttonText.gameObject, driver.transform, false);
+            label.name = "CustomBlocksModifier";
+            CustomBlocksMod.UnhideInstance(label);
+
+            foreach (I2.Loc.Localize localize in label.GetComponentsInChildren<I2.Loc.Localize>(true))
+            {
+                Destroy(localize);
+            }
+
+            var labelRect = (RectTransform)label.transform;
+            labelRect.localScale = Vector3.one * badgeScale;
+            labelRect.anchoredPosition = new Vector2(
+                labelRect.anchoredPosition.x + badgeOffset.x, labelRect.anchoredPosition.y + badgeOffset.y);
+
+            var badge = new Badge();
+            badge.label = label.GetComponent<Text>();
+            badge.label.color = Color.white;
+
+            // The plate is a sibling drawn before the text, not a child: uGUI draws
+            // children after their parent, so a child would cover the letter.
+            var plate = new GameObject("CustomBlocksModifierBg");
+            plate.transform.SetParent(driver.transform, false);
+
+            var plateRect = plate.AddComponent<RectTransform>();
+            plateRect.anchorMin = labelRect.anchorMin;
+            plateRect.anchorMax = labelRect.anchorMax;
+            plateRect.pivot = labelRect.pivot;
+            plateRect.localScale = labelRect.localScale;
+            plateRect.anchoredPosition = labelRect.anchoredPosition;
+            plateRect.sizeDelta = labelRect.sizeDelta + new Vector2(badgePadding, badgePadding);
+
+            badge.plate = plate.AddComponent<Image>();
+            plate.transform.SetSiblingIndex(label.transform.GetSiblingIndex());
+
+            badge.Show(false);
+            return badge;
+        }
+
+        class Badge
+        {
+            public Text label;
+            public Image plate;
+
+            public void Show(bool visible)
+            {
+                if (label != null && label.enabled != visible)
+                {
+                    label.enabled = visible;
+                }
+
+                // The plate has to follow the label, or a player with no chord gets
+                // an empty tag sitting on their key box.
+                if (plate != null && plate.enabled != visible)
+                {
+                    plate.enabled = visible;
+                }
+            }
+
+            public void SetSprite(Sprite sprite)
+            {
+                if (plate != null && plate.sprite != sprite)
+                {
+                    plate.sprite = sprite;
+                }
+            }
+
+            public void SetText(string text)
+            {
+                if (label != null && label.text != text)
+                {
+                    label.text = text;
+                }
+            }
         }
 
         // Resolved at layout time, never cached. The key boxes are not at their
@@ -218,7 +319,27 @@ namespace CustomBlocks.Backgrounds.UI
             layerRow = CloneRow(pair != null ? pair : single, "Layer");
             highlightRow = CloneRow(single, "Highlight");
 
-            return modeRow != null && layerRow != null && highlightRow != null;
+            if (modeRow == null || layerRow == null || highlightRow == null)
+            {
+                return false;
+            }
+
+            modeRow.padButtons = new System.Func<PadButton>[]
+                { () => CustomBlocksMod.PadBackground.Value };
+            modeRow.keyboardKeys = new System.Func<KeyCode>[]
+                { () => CustomBlocksMod.ToggleBackgroundKey.Value };
+
+            layerRow.padButtons = new System.Func<PadButton>[]
+                { () => CustomBlocksMod.PadPrevLayer.Value, () => CustomBlocksMod.PadNextLayer.Value };
+            layerRow.keyboardKeys = new System.Func<KeyCode>[]
+                { () => CustomBlocksMod.PrevLayerKey.Value, () => CustomBlocksMod.SwitchLayerKey.Value };
+
+            highlightRow.padButtons = new System.Func<PadButton>[]
+                { () => CustomBlocksMod.PadHighlight.Value };
+            highlightRow.keyboardKeys = new System.Func<KeyCode>[]
+                { () => CustomBlocksMod.HighlightBlockKey.Value };
+
+            return true;
         }
 
         Row CloneRow(CursorControlHintButton template, string suffix)
@@ -242,13 +363,17 @@ namespace CustomBlocks.Backgrounds.UI
                 row.label = row.button.buttonText;
             }
 
-            // MultiControllerButton rewrites the glyph from its own inputKey every
-            // frame, and Localize rewrites the label from a translation key. Both
-            // would stomp the text set below, and neither has anything to say about
-            // a key the game does not know about. Keep the Images they drove so the
-            // sprite can be mirrored and the box tinted.
+            // MultiControllerButton is kept alive and re-pointed at the button we
+            // mean (see UpdateGlyphs). It is what draws the correctly coloured face
+            // button per device — Xbox, PlayStation, Switch and Joycon all have
+            // their own sprites in MultiControllerUIManager.UpdateButton — so
+            // letting it run beats freezing one sprite and stamping a letter on it.
+            //
+            // Localize does have to go: it rewrites the row label from a
+            // translation key and would stomp the text set in Refresh.
             foreach (MultiControllerButton glyphDriver in clone.GetComponentsInChildren<MultiControllerButton>(true))
             {
+                row.drivers.Add(glyphDriver);
                 if (glyphDriver.buttonImage != null)
                 {
                     row.glyphImages.Add(glyphDriver.buttonImage);
@@ -257,11 +382,15 @@ namespace CustomBlocks.Backgrounds.UI
                 {
                     row.glyphImages.Add(glyphDriver.buttonBackgroundImage);
                 }
-                Destroy(glyphDriver);
             }
             foreach (I2.Loc.Localize localize in clone.GetComponentsInChildren<I2.Loc.Localize>(true))
             {
                 Destroy(localize);
+            }
+
+            foreach (MultiControllerButton driver in row.drivers)
+            {
+                row.badges.Add(MakeBadge(driver));
             }
 
             return row.button != null && EdgeGlyph(rect, true) != null ? row : null;
@@ -289,7 +418,7 @@ namespace CustomBlocks.Backgrounds.UI
                 return;
             }
 
-            SyncGlyphSprite();
+            UpdateGlyphs();
 
             bool visible = CustomBlocksMod.InFreePlace() && HintsLive();
 
@@ -310,14 +439,21 @@ namespace CustomBlocks.Backgrounds.UI
             }
         }
 
-        // The same condition PiecePlacementCursor.UIUpdate guards its own hint
-        // updates with (PiecePlacementCursor.cs:843). Opening the inventory book
-        // freezes the cursor, which hides the game's rows; without this our rows
-        // are not registered anywhere the game hides, so they would linger on
-        // screen over the open book.
+        // Whether this cursor is in a state where its hints belong on screen.
+        //
+        // frozen and placementPhysicsLock are the conditions
+        // PiecePlacementCursor.UIUpdate guards its own hint updates with
+        // (PiecePlacementCursor.cs:843) — opening the inventory book freezes the
+        // cursor, which hides the game's rows, and ours are registered nowhere the
+        // game hides, so without this they linger over the open book.
+        //
+        // disabled is the free-play one: when a player switches to play, their
+        // cursor is disabled and hidden while the phase stays PLACE for whoever is
+        // still building. Their rows used to be left behind, floating in the level
+        // at the spot the cursor was last seen.
         bool HintsLive()
         {
-            if (cursor == null || cursor.frozen || cursor.placementPhysicsLock)
+            if (cursor == null || cursor.disabled || cursor.frozen || cursor.placementPhysicsLock)
             {
                 return false;
             }
@@ -325,42 +461,103 @@ namespace CustomBlocks.Backgrounds.UI
             return cursor.AssociatedGamePlayer != null && cursor.AssociatedGamePlayer.IsLocalPlayer;
         }
 
-        void SyncGlyphSprite()
+        // Points each key box at the button it actually stands for, so the game
+        // draws it. On a controller that is the mod's own binding, which yields the
+        // correctly coloured face button for whatever pad is plugged in, plus a
+        // small modifier tag because the binding is a chord. On a keyboard the box
+        // is left pointing at the row it was cloned from — which renders the plain
+        // key sprite — and the letter is overwritten with our own key below.
+        void UpdateGlyphs()
         {
-            if (templateGlyph == null || templateGlyph.sprite == null)
-            {
-                return;
-            }
+            bool keyboard = OnKeyboard();
 
-            SyncGlyphSprite(modeRow);
-            SyncGlyphSprite(layerRow);
-            SyncGlyphSprite(highlightRow);
+            UpdateGlyphs(modeRow, keyboard);
+            UpdateGlyphs(layerRow, keyboard);
+            UpdateGlyphs(highlightRow, keyboard);
         }
 
-        void SyncGlyphSprite(Row row)
+        void UpdateGlyphs(Row row, bool keyboard)
         {
-            if (row == null)
+            if (row == null || row.padButtons == null)
             {
                 return;
             }
 
-            for (int i = 0; i < row.glyphImages.Count; i++)
+            row.drivers.Sort(CompareDriversByX);
+
+            string modifier = PadBindings.ShortLabel(CustomBlocksMod.PadModifier.Value);
+            bool chord = !keyboard && CustomBlocksMod.ControllerBindings.Value;
+
+            for (int i = 0; i < row.drivers.Count; i++)
             {
-                Image glyph = row.glyphImages[i];
-                if (glyph == null)
+                MultiControllerButton driver = row.drivers[i];
+                if (driver == null || i >= row.padButtons.Length)
                 {
                     continue;
                 }
 
-                if (glyph.sprite != templateGlyph.sprite)
+                // Only re-point it on a controller: on a keyboard the cloned row's
+                // own key is what produces a plain key box to write our letter on.
+                if (!keyboard)
                 {
-                    glyph.sprite = templateGlyph.sprite;
+                    InputEvent.InputKey wanted = PadBindings.ToInputKey(row.padButtons[i]());
+                    if (driver.inputKey != wanted)
+                    {
+                        driver.inputKey = wanted;
+                        driver.MarkDirty();
+                    }
                 }
-                if (!glyph.enabled)
+                else if (driver.buttonText != null && row.keyboardKeys != null && i < row.keyboardKeys.Length)
                 {
-                    glyph.enabled = true;
+                    // Set every frame, not once: the driver rewrites this letter
+                    // from the game's own binding whenever it re-evaluates, which
+                    // it does on any device switch.
+                    string letter = row.keyboardKeys[i]().ToString();
+                    if (driver.buttonText.text != letter)
+                    {
+                        driver.buttonText.text = letter;
+                    }
+                    if (!driver.buttonText.enabled)
+                    {
+                        driver.buttonText.enabled = true;
+                    }
+                }
+
+                // Only shown when the binding actually is a chord. A keyboard
+                // player has no modifier to press, so tagging their keys would be
+                // a lie — and an empty plate on the key box if the text alone were
+                // hidden.
+                Badge badge = i < row.badges.Count ? row.badges[i] : null;
+                if (badge != null)
+                {
+                    badge.Show(chord);
+                    if (chord)
+                    {
+                        badge.SetText(modifier);
+                        badge.SetSprite(KeyCapSprite());
+                    }
                 }
             }
+        }
+
+        // The game's own key-cap sprite, so the tag matches the keys drawn
+        // elsewhere in the cluster instead of being a bare rectangle.
+        static Sprite KeyCapSprite()
+        {
+            MultiControllerUIManager manager = MultiControllerUIManager.Instance;
+            return manager != null ? manager.KeyboardKeySprite : null;
+        }
+
+        static int CompareDriversByX(MultiControllerButton a, MultiControllerButton b)
+        {
+            return ((RectTransform)a.transform).anchoredPosition.x
+                .CompareTo(((RectTransform)b.transform).anchoredPosition.x);
+        }
+
+        bool OnKeyboard()
+        {
+            Player player = cursor != null ? cursor.LocalPlayer : null;
+            return player == null || player.UseController == null || player.UseController.IsKeyboard;
         }
 
         // Never passes highlighted: the authored highlight colours are near-invisible
@@ -458,15 +655,9 @@ namespace CustomBlocks.Backgrounds.UI
             // couch do not read each other's layer off the wrong cluster.
             LayerState state = LayerState.For(cursor);
 
-            SetRow(modeRow, new KeyCode[] { CustomBlocksMod.ToggleBackgroundKey.Value }, "Background");
-
-            // Previous key first, so the pair reads in the direction it cycles,
-            // matching Rotate's Q/E.
-            SetRow(layerRow,
-                new KeyCode[] { CustomBlocksMod.PrevLayerKey.Value, CustomBlocksMod.SwitchLayerKey.Value },
-                "Layer: " + state.LayerName());
-
-            SetRow(highlightRow, new KeyCode[] { CustomBlocksMod.HighlightBlockKey.Value }, "Highlight");
+            SetLabel(modeRow, "Background");
+            SetLabel(layerRow, "Layer: " + state.LayerName());
+            SetLabel(highlightRow, "Highlight");
 
             // On/off lives on the key box, not in the text: the state is already
             // obvious from the blocks themselves, so the cue can stay quiet.
@@ -492,49 +683,12 @@ namespace CustomBlocks.Backgrounds.UI
             }
         }
 
-        static void SetRow(Row row, KeyCode[] keys, string text)
+        static void SetLabel(Row row, string text)
         {
-            if (row == null)
-            {
-                return;
-            }
-
-            if (row.label != null)
+            if (row != null && row.label != null)
             {
                 row.label.text = text;
             }
-
-            // Assign left to right, so a two-key row reads in layout order rather
-            // than in whatever order GetComponentsInChildren happens to walk.
-            var overlays = new List<Text>();
-            foreach (Text child in row.rect.GetComponentsInChildren<Text>(true))
-            {
-                if (child != row.label && child.name == "ButtonTextOverlay")
-                {
-                    overlays.Add(child);
-                }
-            }
-            overlays.Sort(CompareByX);
-
-            for (int i = 0; i < overlays.Count; i++)
-            {
-                Text overlay = overlays[i];
-                if (i < keys.Length)
-                {
-                    overlay.text = keys[i].ToString();
-                    overlay.enabled = true;
-                }
-                else
-                {
-                    // Template had more key boxes than this row needs.
-                    overlay.enabled = false;
-                }
-            }
-        }
-
-        static int CompareByX(Text a, Text b)
-        {
-            return a.transform.position.x.CompareTo(b.transform.position.x);
         }
     }
 }
