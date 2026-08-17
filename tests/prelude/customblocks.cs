@@ -786,11 +786,26 @@ public static class FleetCB
         return true;
     }
 
+    // Background state is per local player now (CustomBlocks.Backgrounds.LayerState),
+    // and "not background" is a layer rather than a mode: LayerState.Solid. This
+    // drives the state of the player the keyboard controls — the same one the
+    // G/K/L/H shortcuts act on, and the only cursor a fleet scenario has.
     public static bool SetBackgroundMode(bool on)
     {
-        System.Reflection.FieldInfo f = ModType("CustomBlocks.CustomBlocksMod").GetField("enableBackgroundMode");
-        f.SetValue(null, on);
-        return (bool)f.GetValue(null);
+        Type ls = ModType("CustomBlocks.Backgrounds.LayerState");
+        object state = ls.GetProperty("View",
+            System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
+            .GetValue(null, null);
+        if (state == null) throw new Exception("FleetCB: no LayerState.View (no local cursor?)");
+
+        int solid = (int)ls.GetField("Solid").GetValue(null);
+        int layer = on
+            ? (int)ls.GetMethod("IndexOf").Invoke(null, new object[] { "Background 1" })
+            : solid;
+        ls.GetMethod("Select").Invoke(state, new object[] { layer });
+        ls.GetField("ModeEnabled").SetValue(state, on);
+
+        return (bool)ls.GetProperty("IsBackground").GetValue(state, null);
     }
 
     // Every background block in the scene: cleaned name, layer, alpha, and the

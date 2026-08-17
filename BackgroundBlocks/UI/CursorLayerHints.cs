@@ -292,13 +292,17 @@ namespace CustomBlocks.Backgrounds.UI
             SyncGlyphSprite();
 
             bool visible = CustomBlocksMod.InFreePlace() && HintsLive();
-            bool background = CustomBlocksMod.enableBackgroundMode;
 
             // The mode row always shows during building, so the feature is
-            // discoverable; the other two only mean anything once it is on.
+            // discoverable. The other two follow the tool being switched on — not
+            // the layer in use, so picking up an ordinary block moves the selection
+            // to the solid layer without the controls vanishing from under the
+            // player.
+            bool toolOn = LayerState.For(cursor).ModeEnabled;
+
             Show(modeRow, visible);
-            Show(layerRow, visible && background);
-            Show(highlightRow, visible && background);
+            Show(layerRow, visible && toolOn);
+            Show(highlightRow, visible && toolOn);
 
             if (visible)
             {
@@ -450,31 +454,24 @@ namespace CustomBlocks.Backgrounds.UI
                 return;
             }
 
+            // Each cursor shows its own player's state, so two builders on one
+            // couch do not read each other's layer off the wrong cluster.
+            LayerState state = LayerState.For(cursor);
+
             SetRow(modeRow, new KeyCode[] { CustomBlocksMod.ToggleBackgroundKey.Value }, "Background");
 
             // Previous key first, so the pair reads in the direction it cycles,
             // matching Rotate's Q/E.
             SetRow(layerRow,
                 new KeyCode[] { CustomBlocksMod.PrevLayerKey.Value, CustomBlocksMod.SwitchLayerKey.Value },
-                "Layer: " + CurrentLayerName());
+                "Layer: " + state.LayerName());
 
             SetRow(highlightRow, new KeyCode[] { CustomBlocksMod.HighlightBlockKey.Value }, "Highlight");
 
             // On/off lives on the key box, not in the text: the state is already
             // obvious from the blocks themselves, so the cue can stay quiet.
-            Tint(modeRow, CustomBlocksMod.enableBackgroundMode);
-            Tint(highlightRow, CustomBlocksMod.highlightSelectedLayer);
-        }
-
-        static string CurrentLayerName()
-        {
-            int index = CustomBlocksMod.selectedLayer;
-            if (index < 0 || index >= SortingLayer.layers.Length)
-            {
-                return "?";
-            }
-
-            return SortingLayer.layers[index].name;
+            Tint(modeRow, state.ModeEnabled);
+            Tint(highlightRow, state.HighlightLayer);
         }
 
         static void Tint(Row row, bool on)

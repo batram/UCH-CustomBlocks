@@ -16,15 +16,14 @@ namespace CustomBlocks
     [BepInPlugin("CustomBlocks", "CustomBlocks", "0.2")]
     public class CustomBlocksMod : BaseUnityPlugin
     {
-        public static bool enableBackgroundMode = false;
         public const int magicBackgroundBlockNumber = 9000;
         public const int magicCustomBlockNumber = 5000;
 
         // CustomBlockNet global action codes (negative = channel-wide)
         public const short netActionBackground = -1;
 
-        public static int selectedLayer = 0;
-        public static bool highlightSelectedLayer = false;
+        // Background mode, selected layer and highlight are per local player and
+        // live in Backgrounds.LayerState.
         public static string defaultBackgroundLayer = "Background 1";
 
         public static ConfigEntry<bool> CustomBlocksEnabled;
@@ -42,14 +41,6 @@ namespace CustomBlocks
             Debug.Log("Moin from CustomBlocks");
             path = Path.GetDirectoryName(this.Info.Location);
 
-            for (int i = 0; i < SortingLayer.layers.Length; i++)
-            {
-                var s = SortingLayer.layers[i];
-                if (s.name == defaultBackgroundLayer)
-                {
-                    selectedLayer = i;
-                }
-            }
             CustomBlocksEnabled = Config.Bind("General", "CustomBlocksEnabled", true);
 
             if (CustomBlocksEnabled.Value)

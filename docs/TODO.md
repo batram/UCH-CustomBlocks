@@ -154,3 +154,46 @@ Two directions if this is picked up:
 2. Default to a minimal base. Blocks needing no specific mechanics (PigDirt,
    ChickenRoll, OneRoundWood) could clone one known-simple block instead of a
    semantically similar one — one predictable base, no surprise sub-elements.
+
+---
+
+## Curate the background layer list, and let builders name their own
+
+**Wanted:** a layer picker that offers a short, meaningful list instead of
+whatever `SortingLayer.layers` happens to contain, with somewhere to read what
+each layer means and to choose which ones you build with.
+
+**Why:** the raw list is not fit to cycle through. Dumped from a live 1.13
+instance (2026-08-17), all 20 entries in order:
+
+    0 SkyBackground        5 Background 2      10 Default        15 Foreground Background
+    1 Distant Background   6 Background 1      11 Default        16 UI 1
+    2 Background 5         7 Haze              12 MovingBlocks   17 UI 2
+    3 Background 4         8 GraphPaper        13 Player         18 Background 2
+    4 Background 3         9 Main Background   14 Effects        19 UI 3
+
+Three problems. **Duplicates:** `Default` appears at 10 and 11, `Background 2`
+at 5 and 18 — cycling walks the same layer twice under the same name.
+**Engine junk:** `Player`, `Effects`, `MovingBlocks` and `UI 1/2/3` are not
+scenery layers; a block parked on `UI 1` draws over the entire game, and
+`MovingBlocks` is assigned by the game itself (`Placeable.SpriteAssignmentRule`)
+for pieces carrying motion modifiers, so building onto it fights the game.
+**Opaque names:** `Haze` and `GraphPaper` say nothing about where they sit
+relative to `Background 3`, and the ordering is by sort value, not by name.
+
+Worth having:
+
+- a curated default list (the `Background N` family, `Distant Background`,
+  `SkyBackground`, plus the solid pseudo-layer) with the rest hidden;
+- per-layer annotation — draw order, and that everything but the solid
+  pseudo-layer is collision-free;
+- user-chosen names and user-chosen subset, persisted in config, so a builder
+  can call a layer "far hills" and drop the ones they never use;
+- somewhere to show it. The pause tablet is the natural home (clone
+  `TabletButton`, which restyles itself — see
+  `glorpy_knowledge/build-phase-cursor-clickable-ui.md`) rather than another
+  bespoke overlay.
+
+Note the solid pseudo-layer (`LayerState.Solid`) already displays as "Default"
+while a real sorting layer of that name also exists at 10/11. Curation should
+resolve that collision rather than leave two different things sharing a label.

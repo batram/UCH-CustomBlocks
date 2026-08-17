@@ -2,6 +2,12 @@ using UnityEngine;
 
 namespace CustomBlocks.Backgrounds
 {
+    // Dims and brightens placed blocks so the layer being worked on stands out.
+    //
+    // Unlike what a player places, this is a property of the screen rather than of
+    // a player: there is only one level being drawn, so on a shared couch screen it
+    // cannot be per-player. It renders from LayerState.View — the player who can
+    // actually drive it.
     public class PlaceableHighlighter
     {
         public static void HighlightAlpha(Placeable placeable)
@@ -34,13 +40,19 @@ namespace CustomBlocks.Backgrounds
 
         public static void HighlightUpdateAll()
         {
+            LayerState view = LayerState.View;
             foreach (Placeable pla in Object.FindObjectsOfType<Placeable>())
             {
-                HighlightUpdateBlock(pla);
+                HighlightUpdateBlock(pla, view);
             }
         }
 
         public static void HighlightUpdateBlock(Placeable pla)
+        {
+            HighlightUpdateBlock(pla, LayerState.View);
+        }
+
+        public static void HighlightUpdateBlock(Placeable pla, LayerState view)
         {
             if (pla.markedForDestruction)
             {
@@ -55,7 +67,7 @@ namespace CustomBlocks.Backgrounds
             else
             {
                 // revert to normal scheme if layer highlight is not active
-                if (!CustomBlocksMod.highlightSelectedLayer)
+                if (!view.HighlightLayer)
                 {
                     if (CustomBlocksMod.IsBackgroundBlock(pla.gameObject))
                     {
@@ -69,7 +81,7 @@ namespace CustomBlocks.Backgrounds
                 else
                 {
                     // highlight (as solid) normal blocks if we are not in background mode
-                    if (!CustomBlocksMod.enableBackgroundMode)
+                    if (!view.IsBackground)
                     {
                         if (CustomBlocksMod.IsBackgroundBlock(pla.gameObject))
                         {
@@ -83,7 +95,7 @@ namespace CustomBlocks.Backgrounds
                     }
                     // highlight mod blocks that are on the current layer
                     else if (pla.gameObject.GetComponent<BackgroundBlock>()
-                    && pla.gameObject.GetComponent<BackgroundBlock>().layer == SortingLayer.layers[CustomBlocksMod.selectedLayer].name)
+                    && pla.gameObject.GetComponent<BackgroundBlock>().layer == view.LayerName())
                     {
                         PlaceableHighlighter.HighlightAlpha(pla);
                     }
