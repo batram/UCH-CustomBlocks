@@ -36,6 +36,11 @@ namespace CustomBlocks.Core
 
         // Clear of the ring binding on the left and of the page title on top.
         // The title sits at y 1004.0-1004.5 against a paper top of 1006.9.
+        // A re-measure has to come in below this fraction of the smallest area
+        // seen so far to count as a shrink. The rigs this exists for lose most
+        // of their area when they settle, so 2% is nowhere near them.
+        const float shrinkThreshold = 0.98f;
+
         const float LeftInset = 0.95f;
         const float RightInset = 0.25f;
         const float TopClear = 3.2f;
@@ -50,11 +55,23 @@ namespace CustomBlocks.Core
                 return;
             }
 
+            if (!Flat())
+            {
+                return;
+            }
+
             // Same reasoning as PickColliderAligner: glue-based blocks carry a
             // rig that is transparent at rest and animates in on mouse-over, so
             // the resting artwork is the SMALLEST the bounds ever get. Re-lay
             // out only when something shrinks; once every block has settled
             // this stops doing anything.
+            //
+            // "Shrinks" means MEANINGFULLY smaller. Measured bounds wobble by a
+            // fraction of a percent between visits to the page — idle artwork is
+            // still animating — and an absolute epsilon let that wobble re-flow
+            // the whole page by a couple of hundredths every time the reader
+            // came back. Invisible, but it meant the page never held still, and
+            // a layout that never holds still cannot be asserted on.
             bool changed = false;
             foreach (Transform child in Items)
             {
@@ -63,12 +80,47 @@ namespace CustomBlocks.Core
                 Vector2 size = new Vector2(b.size.x, b.size.y);
                 Vector2 known;
                 if (smallest.TryGetValue(child, out known)
-                    && size.x * size.y >= known.x * known.y - 1e-4f) continue;
+                    && size.x * size.y >= known.x * known.y * shrinkThreshold) continue;
                 smallest[child] = size;
                 changed = true;
             }
 
             if (changed) Arrange();
+        }
+
+        // Whether the page is lying flat and facing the reader.
+        //
+        // A page turn is an ANIMATION, and it spins the page root about the
+        // book's spine: an InventoryPage the reader has turned PAST sits at
+        // y=270 (setPageState(1)), not at 0. Everything below measures world
+        // axis-aligned bounds, and edge-on those are degenerate — the paper
+        // collapses to a sliver, so `left` and `rowTop` come out of a rectangle
+        // that isn't there and the items march off down the page. Worse, a
+        // world-space nudge applied under a 270 rotation lands in the child's
+        // LOCAL z, lifting blocks off the paper entirely.
+        //
+        // This is why the bug needed pages 6 and 7: reaching our page from the
+        // front leaves it at 0 the whole time and everything looks right. Only
+        // turning PAST it and coming back rotates it, and the re-measure that
+        // the flip triggers then ran against an edge-on page.
+        bool Flat()
+        {
+            // The page's own rotation, not its world one: the book as a whole is
+            // free to sit at whatever angle the scene puts it at.
+            if (Quaternion.Angle(transform.localRotation, Quaternion.identity) > 1f)
+            {
+                return false;
+            }
+
+            // Turned-away pages also switch their paper renderer off, and a
+            // renderer that is not drawing reports bounds that mean nothing.
+            if (!Paper.enabled || !Paper.gameObject.activeInHierarchy)
+            {
+                return false;
+            }
+
+            Animator animator = GetComponent<Animator>();
+            return animator == null || !animator.IsInTransition(0);
         }
 
         void Arrange()
@@ -126,7 +178,12 @@ namespace CustomBlocks.Core
 
                 float jitter = 0.35f * Wobble(child.name, 1);
                 Vector3 want = new Vector3(x + size.x * 0.5f, rowTop - size.y * 0.5f + jitter, current.center.z);
-                child.position += want - current.center;
+
+                // Move by a delta expressed in the PARENT's space, not by
+                // assigning a world position. Only the flat page makes the two
+                // the same, and a block that ends up off the page plane is
+                // invisible rather than merely misplaced.
+                child.localPosition += child.parent.InverseTransformVector(want - current.center);
 
                 x += size.x;
                 rowHeight = Mathf.Max(rowHeight, size.y + Mathf.Abs(jitter));

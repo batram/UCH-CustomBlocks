@@ -1,0 +1,50 @@
+{
+  "items": [
+    {
+      "name": "Acid_Pick",
+      "onPaper": true,
+      "pos": "13.33;-9.7;-1.43"
+    },
+    {
+      "name": "ChickenRoll_Pick",
+      "onPaper": true,
+      "pos": "10.91;-11.61;-1.43"
+    },
+    {
+      "name": "FloatyCloud_Pick",
+      "onPaper": true,
+      "pos": "9.74;-7.01;-1.43"
+    },
+    {
+      "name": "MultiStart_Pick",
+      "onPaper": true,
+      "pos": "5;-9.2;-1.43"
+    },
+    {
+      "name": "OneRoundWood_Pick",
+      "onPaper": true,
+      "pos": "2.53;-6.57;-1.43"
+    },
+    {
+      "name": "PigDirt_Pick",
+      "onPaper": true,
+      "pos": "3.8;-11.26;-1.43"
+    },
+    {
+      "name": "RCReceiver_Pick",
+      "onPaper": true,
+      "pos": "8.65;-10.24;-1.43"
+    },
+    {
+      "name": "RCTransmitter_Pick",
+      "onPaper": true,
+      "pos": "5.46;-12.48;-1.43"
+    },
+    {
+      "name": "ReCoin_Pick",
+      "onPaper": true,
+      "pos": "2.5;-11.56;-1.43"
+    }
+  ],
+  "modPage": 4
+}

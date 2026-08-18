@@ -13,7 +13,7 @@ using UnityEngine;
 
 public static class FleetCB
 {
-    public const string Version = "1.37";
+    public const string Version = "1.38";
 
     // Bounds of what a transform actually DRAWS.
     //
@@ -299,6 +299,54 @@ public static class FleetCB
             if (p != null && p.name.Contains("Mod Blocks")) return i;
         }
         return -1;
+    }
+
+    // Where the mod page's blocks sit ON THE PAGE, plus whether each one is
+    // still on the paper at all.
+    //
+    // Positions are page-LOCAL, which is the frame that survives a page turn:
+    // the turn spins the page root about the book's spine, so world positions
+    // differ between "you are reading this page" and "you have turned past it"
+    // while local ones do not. Comparing two of these across a turn is the
+    // observable for "the layout did not move when the reader was not looking".
+    //
+    // The z is in the record on purpose. Blocks that got shoved off the page
+    // plane still LOOK arranged from the front — the first thing that noticed
+    // them was a z of +1.13 where every sibling sat at -1.43.
+    public static string ModPageItemsJson()
+    {
+        InventoryBook book = Book();
+        int idx = BookModPageIndex();
+        if (idx < 0) return "{\"modPage\":-1}";
+
+        InventoryPage page = book.InventoryPages[idx];
+        Transform items = page.transform.Find("Items");
+        if (items == null) return "{\"modPage\":" + idx + ",\"items\":null}";
+
+        // Paper rectangle in the same page-local frame as the items.
+        Bounds paper = page.pagePaper.bounds;
+        Vector3 paperMin = page.transform.InverseTransformPoint(paper.min);
+        Vector3 paperMax = page.transform.InverseTransformPoint(paper.max);
+        float left = Math.Min(paperMin.x, paperMax.x);
+        float right = Math.Max(paperMin.x, paperMax.x);
+        float bottom = Math.Min(paperMin.y, paperMax.y);
+        float top = Math.Max(paperMin.y, paperMax.y);
+
+        List<string> rows = new List<string>();
+        foreach (Transform child in items)
+        {
+            Vector3 p = child.localPosition;
+            // Items sit under an "Items" holder with its own offset; compare
+            // against the paper in the page's frame, not the holder's.
+            Vector3 onPage = page.transform.InverseTransformPoint(child.position);
+            bool onPaper = onPage.x >= left && onPage.x <= right
+                && onPage.y >= bottom && onPage.y <= top;
+            rows.Add("{\"name\":" + Q(child.name)
+                + ",\"pos\":" + Q(Fmt(p))
+                + ",\"onPaper\":" + (onPaper ? "true" : "false") + "}");
+        }
+        rows.Sort(StringComparer.Ordinal);
+        return "{\"modPage\":" + idx + ",\"items\":" + Arr(rows) + "}";
     }
 
     // A page a player cannot turn to is not in the book, whatever the array
@@ -834,7 +882,6 @@ public static class FleetCB
     public static string StepLayer(bool reverse)
     {
         PiecePlacementCursor cursor = LocalCursor();
-        if (cursor == null) throw new Exception("FleetCB: no local cursor to step the layer on");
 
         ModType("CustomBlocks.Backgrounds.Patches.LayerSelectionGUI")
             .GetMethod("CycleLayer",
@@ -846,15 +893,6 @@ public static class FleetCB
         object state = ls.GetMethod("For", new Type[] { typeof(global::Cursor) })
             .Invoke(null, new object[] { cursor });
         return (string)ls.GetMethod("LayerName", new Type[0]).Invoke(state, null);
-    }
-
-    static PiecePlacementCursor LocalCursor()
-    {
-        foreach (PiecePlacementCursor c in UnityEngine.Object.FindObjectsOfType<PiecePlacementCursor>())
-        {
-            if (c != null && c.hasAuthority) return c;
-        }
-        return null;
     }
 
     // Where each mod hint row's label sits RELATIVE TO ITS KEY BOXES, which is
