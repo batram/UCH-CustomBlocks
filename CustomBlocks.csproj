@@ -64,7 +64,12 @@
 	  </Reference>
 	  <Reference Include="UnityEngine.UIModule">
 		  <HintPath>$(UCHfolder)\UltimateChickenHorse_Data\Managed\UnityEngine.UIModule.dll</HintPath>
-	  </Reference>	  
+	  </Reference>
+	  <Reference Include="UnityEngine.TextRenderingModule">
+		  <HintPath>$(UCHfolder)\UltimateChickenHorse_Data\Managed\UnityEngine.TextRenderingModule.dll</HintPath>
+		  <Private>False</Private>
+	  </Reference>
+
     <Reference Include="Steamworks">
 		  <HintPath>$(UCHfolder)\UltimateChickenHorse_Data\Managed\com.rlabrecque.steamworks.net.dll</HintPath>
 	  </Reference>

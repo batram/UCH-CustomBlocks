@@ -342,6 +342,27 @@ namespace CustomBlocks.Backgrounds.UI
             return true;
         }
 
+        // Lays the key boxes out left to right the way the row's own layout group
+        // would have, so the second key does not sit hidden underneath the first.
+        // Child order, not current x: before the group has run they are all at the
+        // same place and their x cannot order them.
+        static void SpreadGlyphs(RectTransform row, HorizontalLayoutGroup group)
+        {
+            float x = group.padding.left;
+            foreach (Transform child in row)
+            {
+                if (!child.name.Contains("MultiControllerButton"))
+                {
+                    continue;
+                }
+
+                var glyph = (RectTransform)child;
+                glyph.anchoredPosition = new Vector2(
+                    x + glyph.sizeDelta.x * glyph.pivot.x, glyph.anchoredPosition.y);
+                x += glyph.sizeDelta.x + group.spacing;
+            }
+        }
+
         Row CloneRow(CursorControlHintButton template, string suffix)
         {
             GameObject clone = Instantiate(template.gameObject, rows, false);
@@ -355,12 +376,37 @@ namespace CustomBlocks.Backgrounds.UI
             rect.pivot = source.pivot;
             rect.sizeDelta = source.sizeDelta;
 
+            // The game's hint rows carry a HorizontalLayoutGroup, which lays their
+            // children out left to right and so puts the label to the RIGHT of the
+            // key boxes. It only re-runs when something dirties the layout — and
+            // the only row whose text ever changes is the layer row, so pressing
+            // the layer keys flipped "Layer: ..." across to the wrong side and left
+            // it there. We place every child by hand, so the group has to go.
+            //
+            // But the group is also what spread the two key boxes apart: they are
+            // stacked on top of each other until it runs. So take its own numbers
+            // over to the key boxes before destroying it, and the row keeps the
+            // spacing the game authored.
+            foreach (HorizontalLayoutGroup group in clone.GetComponents<HorizontalLayoutGroup>())
+            {
+                SpreadGlyphs(rect, group);
+                DestroyImmediate(group);
+            }
+
             var row = new Row();
             row.rect = rect;
             row.button = clone.GetComponent<CursorControlHintButton>();
             if (row.button != null)
             {
                 row.label = row.button.buttonText;
+
+                // Right-aligned so the text grows leftwards from its pinned right
+                // edge. Left alignment overflowed rightwards over the key boxes
+                // whenever the text outgrew the rect — which it does between the
+                // frame the layer name changes and the next Layout, and for as long
+                // as Layout is stalled because the row it anchors to is hidden.
+                row.label.alignment = TextAnchor.MiddleRight;
+                ((RectTransform)row.label.transform).pivot = new Vector2(1f, 0.5f);
             }
 
             // MultiControllerButton is kept alive and re-pointed at the button we
@@ -685,10 +731,20 @@ namespace CustomBlocks.Backgrounds.UI
 
         static void SetLabel(Row row, string text)
         {
-            if (row != null && row.label != null)
+            if (row == null || row.label == null || row.label.text == text)
             {
-                row.label.text = text;
+                return;
             }
+
+            row.label.text = text;
+
+            // Resize with the text rather than waiting for the next Layout: the
+            // pivot is on the right edge, so widening here grows the label
+            // leftwards and it never reaches over the key boxes, even while Layout
+            // is stalled on a hidden Inventory row (which is what carrying a block
+            // does).
+            var rect = (RectTransform)row.label.transform;
+            rect.sizeDelta = new Vector2(row.label.preferredWidth, rect.sizeDelta.y);
         }
     }
 }

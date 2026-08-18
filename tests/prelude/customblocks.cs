@@ -13,7 +13,7 @@ using UnityEngine;
 
 public static class FleetCB
 {
-    public const string Version = "1.35";
+    public const string Version = "1.37";
 
     // Bounds of what a transform actually DRAWS.
     //
@@ -825,6 +825,111 @@ public static class FleetCB
 
         ls.GetMethod("Select").Invoke(state, new object[] { layer });
         return (string)ls.GetMethod("LayerName", new Type[0]).Invoke(state, null);
+    }
+
+    // Steps the layer the way the K/L keys do — through LayerSelectionGUI, which
+    // is the seam every real layer change crosses. SetLayer above pokes
+    // LayerState directly and so never repaints the hint rows; anything about
+    // what the player SEES has to come through here.
+    public static string StepLayer(bool reverse)
+    {
+        PiecePlacementCursor cursor = LocalCursor();
+        if (cursor == null) throw new Exception("FleetCB: no local cursor to step the layer on");
+
+        ModType("CustomBlocks.Backgrounds.Patches.LayerSelectionGUI")
+            .GetMethod("CycleLayer",
+                System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic
+                | System.Reflection.BindingFlags.Static)
+            .Invoke(null, new object[] { cursor, reverse });
+
+        Type ls = ModType("CustomBlocks.Backgrounds.LayerState");
+        object state = ls.GetMethod("For", new Type[] { typeof(global::Cursor) })
+            .Invoke(null, new object[] { cursor });
+        return (string)ls.GetMethod("LayerName", new Type[0]).Invoke(state, null);
+    }
+
+    static PiecePlacementCursor LocalCursor()
+    {
+        foreach (PiecePlacementCursor c in UnityEngine.Object.FindObjectsOfType<PiecePlacementCursor>())
+        {
+            if (c != null && c.hasAuthority) return c;
+        }
+        return null;
+    }
+
+    // Where each mod hint row's label sits RELATIVE TO ITS KEY BOXES, which is
+    // the claim worth asserting: the label belongs to the left of the boxes and
+    // has to stay there. Absolute positions would only say "a label exists
+    // somewhere".
+    //
+    // "gap" is the distance from the label's right edge to the left edge of the
+    // leftmost key box, in the row's own space. Positive means the label is
+    // clear to the left; negative means it has crossed over the keys — which is
+    // exactly what the cloned rows' inherited HorizontalLayoutGroup used to do
+    // to the layer row the moment its text changed.
+    public static string HintLabelsJson()
+    {
+        List<string> rows = new List<string>();
+        foreach (CursorControlHintButton b in Resources.FindObjectsOfTypeAll<CursorControlHintButton>())
+        {
+            if (b == null || !b.name.StartsWith("CustomBlocksHint_")) continue;
+            if (!b.gameObject.activeInHierarchy || b.buttonText == null) continue;
+
+            RectTransform text = (RectTransform)b.buttonText.transform;
+            float leftBox = float.MaxValue;
+
+            // Key boxes get counted and measured against each other too: the row's
+            // layout group is also what SPREAD them, so removing it once left the
+            // layer row's two keys stacked, with K hidden under L. "There are two
+            // boxes" is not the claim — "they do not overlap" is.
+            List<float> lefts = new List<float>();
+            List<float> rights = new List<float>();
+            foreach (Transform child in b.transform)
+            {
+                if (!child.name.Contains("MultiControllerButton")) continue;
+                RectTransform g = (RectTransform)child;
+                float l = g.anchoredPosition.x - g.sizeDelta.x * g.pivot.x;
+                lefts.Add(l);
+                rights.Add(l + g.sizeDelta.x);
+                leftBox = Math.Min(leftBox, l);
+            }
+            if (leftBox == float.MaxValue) continue;
+
+            // Smallest edge-to-edge distance between any two boxes. Zero or less
+            // means one is sitting on another.
+            float keyGap = float.MaxValue;
+            for (int i = 0; i < lefts.Count; i++)
+            {
+                for (int j = 0; j < lefts.Count; j++)
+                {
+                    if (i == j) continue;
+                    keyGap = Math.Min(keyGap, Math.Max(lefts[i], lefts[j]) - Math.Min(rights[i], rights[j]));
+                }
+            }
+
+            // Measure the ink, not the rect: the label overflows its rect (the
+            // Text is set to Overflow), and which way it spills is decided by the
+            // alignment. Right-aligned it grows leftwards from the rect's right
+            // edge; left-aligned it grows rightwards from the left edge, which is
+            // how a stale rect width used to push the text over the keys.
+            float rectLeft = text.anchoredPosition.x - text.sizeDelta.x * text.pivot.x;
+            float rectRight = rectLeft + text.sizeDelta.x;
+            float drawn = Math.Max(text.sizeDelta.x, b.buttonText.preferredWidth);
+            bool rightAligned = b.buttonText.alignment == TextAnchor.UpperRight
+                || b.buttonText.alignment == TextAnchor.MiddleRight
+                || b.buttonText.alignment == TextAnchor.LowerRight;
+            float right = rightAligned ? rectRight : rectLeft + drawn;
+
+            rows.Add("{\"row\":" + Q(b.name.Replace("CustomBlocksHint_", ""))
+                + ",\"text\":" + Q(b.buttonText.text)
+                + ",\"keys\":" + lefts.Count
+                + ",\"keyGap\":" + (keyGap == float.MaxValue ? "null" : F(keyGap))
+                + ",\"gap\":" + F(leftBox - right)
+                + ",\"layoutGroup\":" + (b.GetComponent<UnityEngine.UI.HorizontalLayoutGroup>() != null ? "true" : "false")
+                + "}");
+        }
+        rows.Sort(StringComparer.Ordinal);
+        return Arr(rows);
     }
 
     // Per-local-player layer state, one row per cursor this client owns, sorted
