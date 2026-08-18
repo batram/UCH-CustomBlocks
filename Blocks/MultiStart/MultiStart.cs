@@ -113,6 +113,21 @@ namespace CustomBlocks.Blocks
                 for (int i = 1; i < barPieces.Count; i++) art.Add(barPieces[i]);
                 pb.ArtSprites = art.ToArray();
             }
+
+            // ArtSprites is only half the job, though: it is not what re-orders
+            // a pickable when its page changes layer. That is SortOrder, and
+            // SortOrder is a snapshot taken when the pickable awoke — so the bar
+            // copies and everything under the spawn zone, all built after that,
+            // kept the sorting order of the page state they were born into and
+            // drew in front of the next page for a second.
+            //
+            // The spawn zone cannot join ArtSprites in any case: Tint recolours
+            // everything in there, and this block does not set
+            // noneDefaultColors, so the hatch would come out the flat neutral
+            // pick colour instead of its own — and a Canvas cannot go in a
+            // SpriteRenderer array at all.
+            for (int i = 1; i < barPieces.Count; i++) AdoptExtraArt(pb, barPieces[i].transform);
+            AdoptExtraArt(pb, startZone);
             return pb;
         }
 

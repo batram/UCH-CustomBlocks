@@ -49,15 +49,35 @@ int pages = await Host.EvalIntAsync("FleetCB.BookPageCount()");
 if (modIdx < 0 || modIdx + 1 >= pages)
     Abort($"no page after the mod's ({modIdx} of {pages}) — nothing to turn past, so the bug cannot show");
 
+// Read the layout only once it has stopped moving.
+//
+// The layout re-flows as artwork settles: the glue-based blocks carry a rig
+// that is opaque for the first frames after the page shows and fades out, so
+// their measured size keeps shrinking for a while. A fixed sleep photographs
+// whatever that process happens to be doing — Acid's y came out -9.7, -8.01
+// and -10.38 on three runs of exactly the same build.
+Func<Task<string>> settledItems = async () =>
+{
+    string previous = null;
+    for (int i = 0; i < 25; i++)
+    {
+        string now = (await Host.EvalAsync("FleetCB.ModPageItemsJson()")).Trim('"');
+        if (now == previous) return now;
+        previous = now;
+        await Task.Delay(300);
+    }
+    Log("layout never stopped moving — goldening the last reading");
+    return previous;
+};
+
 Step("the layout as the reader first meets it");
 await Host.DoAsync($"FleetCB.OpenBook({modIdx});");
 await Require("settled on the mod page", $"FleetCB.BookSettledOn({modIdx})", 15);
-// The layout runs off measured artwork bounds and only settles once every
-// block has stopped shrinking; give it frames rather than photographing a
-// half-arranged page.
-await Task.Delay(800);
 
-string first = (await Host.EvalAsync("FleetCB.ModPageItemsJson()")).Trim('"');
+// Wait for the layout to stop moving, THEN golden it. The page is settled
+// before the artwork is: goldening on a fixed delay recorded a different Acid
+// position on each of three runs of the same build.
+string first = await settledItems();
 Check("every block is on the paper", !first.Contains("\"onPaper\":false"), first);
 await Golden("mod page layout", "FleetCB.ModPageItemsJson()");
 await SaveScreenshot(Host, "customblocks/book-page-first-visit.png");
@@ -68,17 +88,71 @@ for (int i = modIdx + 1; i < pages; i++)
     await Host.DoAsync($"FleetCB.OpenBook({i});");
     await Require($"settled on page {i}", $"FleetCB.BookSettledOn({i})", 15);
     await Task.Delay(300);
+
+    // Nothing from another page may draw in front of this one. Sampled right
+    // after the turn ON PURPOSE: the game leaves the previous page's blocks
+    // Visible for about a second, and that second is when MultiStart's bar
+    // copies and spawn hatch showed through — they kept their authored sorting
+    // orders while the rest of the block went behind the paper.
+    string over = (await Host.EvalAsync("FleetCB.PageOverdrawJson()")).Trim('"');
+    Check($"nothing from another page draws over page {i}", over == "[]", over);
+
+    string leaks = (await Host.EvalAsync("FleetCB.HiddenPickLeaksJson()")).Trim('"');
+    Check($"no hidden block is still drawing on page {i}", leaks == "[]", leaks);
 }
 
 await Host.DoAsync($"FleetCB.OpenBook({modIdx});");
 await Require("back on the mod page", $"FleetCB.BookSettledOn({modIdx})", 15);
-await Task.Delay(800);
 
-string second = (await Host.EvalAsync("FleetCB.ModPageItemsJson()")).Trim('"');
+string second = await settledItems();
 Check("every block is still on the paper", !second.Contains("\"onPaper\":false"), second);
 // The whole claim in one line: nothing moved while the page was turned away.
 Check("the layout is identical to the first visit", second == first, $"before: {first}\nafter:  {second}");
 await SaveScreenshot(Host, "customblocks/book-page-return-visit.png");
+
+Step("turn back off the mod page — the reported repro");
+// Backwards off the page, sampled repeatedly across the second that follows.
+// The bleed is not instantaneous and it is not permanent: it lasts from the
+// turn until the game gets around to hiding the page's blocks, so a single
+// sample either side of that window sees nothing wrong.
+await Host.DoAsync("FleetCB.PrevPage();");
+for (int i = 0; i < 6; i++)
+{
+    string over = (await Host.EvalAsync("FleetCB.PageOverdrawJson()")).Trim('"');
+    Check($"nothing bleeds through {i * 200}ms after turning back", over == "[]", over);
+    await Task.Delay(200);
+}
+await SaveScreenshot(Host, "customblocks/book-page-turned-back.png");
+
+Step("captions survive the round trip legible");
+// Back onto the mod page and check what the captions are actually drawn from.
+// Hiding a block by switching its Canvas off makes Graphic.canvas null, and a
+// text mesh rebuilt in that state bakes its glyphs at a tiny size and keeps
+// them — MultiStart's caption dropped from 69 to 6 and re-blurred on every
+// page turn. A screenshot at this size cannot show that; the baked size can.
+await Host.DoAsync($"FleetCB.OpenBook({modIdx});");
+await Require("on the mod page again", $"FleetCB.BookSettledOn({modIdx})", 15);
+await Task.Delay(500);
+
+// baked == rebuilt, per caption.
+Func<string, bool> captionsAgree = json =>
+{
+    foreach (string row in json.Split(new[] { "},{" }, StringSplitOptions.None))
+    {
+        int b = row.IndexOf("\"baked\":");
+        int r = row.IndexOf("\"rebuilt\":");
+        if (b < 0 || r < 0) continue;
+        string baked = new string(row.Substring(b + 8).TakeWhile(char.IsDigit).ToArray());
+        string rebuilt = new string(row.Substring(r + 10).TakeWhile(char.IsDigit).ToArray());
+        if (baked != rebuilt) return false;
+    }
+    return true;
+};
+
+string captions = (await Host.EvalAsync("FleetCB.CaptionRasterJson()")).Trim('"');
+Check("a caption exists to check", captions.Contains("\"text\""), captions);
+Check("the caption's canvas is live while the block is on display", !captions.Contains("\"canvasOn\":false"), captions);
+Check("captions are rasterised at the size a rebuild would pick", captionsAgree(captions), captions);
 
 await Host.DoAsync("FleetCB.HideBook();");
 

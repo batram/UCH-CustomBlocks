@@ -13,7 +13,7 @@ using UnityEngine;
 
 public static class FleetCB
 {
-    public const string Version = "1.38";
+    public const string Version = "1.42";
 
     // Bounds of what a transform actually DRAWS.
     //
@@ -347,6 +347,274 @@ public static class FleetCB
         }
         rows.Sort(StringComparer.Ordinal);
         return "{\"modPage\":" + idx + ",\"items\":" + Arr(rows) + "}";
+    }
+
+    // Anything belonging to another page that would draw IN FRONT of the page
+    // the reader is looking at.
+    //
+    // "Is the block hidden?" is the wrong question, twice over. The game leaves
+    // a turned-away page's blocks Visible for about a second after the turn, so
+    // a hidden-only check reports nothing during exactly the window the bleed
+    // happens in; and what decides whether they show is sorting order, not the
+    // enabled flag. A page's paper sits at its page number minus four, and
+    // everything on that page draws above it — so anything from ANOTHER page at
+    // or above this paper's order is on top of the page being read.
+    //
+    // That is what the bleed was: SortOrder snapshots a pickable's renderers
+    // when it awakes, and setPageLayer only re-orders that snapshot. MultiStart
+    // built its bar copies and moved its spawn zone in afterwards, so those kept
+    // their authored orders of 0 and 1 while the page they were on went to -40 —
+    // and 0 is well above the -34 of the page turned to.
+    //
+    // Only blocks the mod owns are reported: vanilla pickables are the game's
+    // business, and one of them being sloppy is not this suite's failure.
+    public static string PageOverdrawJson()
+    {
+        InventoryBook book = Book();
+        InventoryPage current = book.InventoryPages[book.currentPage];
+        int paperOrder = current.pagePaper.sortingOrder;
+        string paperLayer = current.pagePaper.sortingLayerName;
+
+        Type reg = Registry();
+        if (reg == null) return "[]";
+
+        HashSet<string> ours = new HashSet<string>();
+        var prefabs = (System.Collections.IEnumerable)reg.GetProperty("Prefabs").GetValue(null, null);
+        foreach (object o in prefabs)
+        {
+            Component c = (Component)o;
+            if (c != null) ours.Add(c.name + "_Pick");
+        }
+
+        List<string> over = new List<string>();
+        foreach (InventoryPage page in UnityEngine.Object.FindObjectsOfType<InventoryPage>())
+        {
+            if (page == current) continue;
+            Transform items = page.transform.Find("Items");
+            if (items == null) continue;
+
+            foreach (Transform child in items)
+            {
+                PickableBlock pb = child.GetComponent<PickableBlock>();
+                if (pb == null || !ours.Contains(pb.name)) continue;
+
+                foreach (Renderer r in pb.GetComponentsInChildren<Renderer>(true))
+                {
+                    if (!r.enabled || !r.gameObject.activeInHierarchy) continue;
+                    SpriteRenderer sr = r as SpriteRenderer;
+                    if (sr != null && (sr.sprite == null || sr.color.a <= 0.01f)) continue;
+                    if (r.sortingLayerName != paperLayer || r.sortingOrder < paperOrder) continue;
+                    over.Add(Q(pb.name + "/" + r.name + " @" + r.sortingOrder
+                        + " over paper @" + paperOrder));
+                }
+                foreach (Canvas cv in pb.GetComponentsInChildren<Canvas>(true))
+                {
+                    if (!cv.enabled || !cv.gameObject.activeInHierarchy) continue;
+                    if (cv.sortingLayerName != paperLayer || cv.sortingOrder < paperOrder) continue;
+                    over.Add(Q(pb.name + "/" + cv.name + " (canvas) @" + cv.sortingOrder
+                        + " over paper @" + paperOrder));
+                }
+            }
+        }
+        over.Sort(StringComparer.Ordinal);
+        return Arr(over);
+    }
+
+    // Anything a hidden book icon is still drawing. Complements PageOverdrawJson:
+    // that one asks what is in front of the current page, this one asks whether
+    // a block the game has hidden really went away.
+    public static string HiddenPickLeaksJson()
+    {
+        Type reg = Registry();
+        if (reg == null) return "[]";
+
+        HashSet<string> ours = new HashSet<string>();
+        var prefabs = (System.Collections.IEnumerable)reg.GetProperty("Prefabs").GetValue(null, null);
+        foreach (object o in prefabs)
+        {
+            Component c = (Component)o;
+            if (c != null) ours.Add(c.name + "_Pick");
+        }
+
+        // Only the copies on a book page. The registry's prefab instances are
+        // in the scene too, permanently hidden and drawing nothing — counting
+        // them would answer this question about the wrong object.
+        List<PickableBlock> onPages = new List<PickableBlock>();
+        foreach (InventoryPage page in UnityEngine.Object.FindObjectsOfType<InventoryPage>())
+        {
+            Transform items = page.transform.Find("Items");
+            if (items == null) continue;
+            foreach (Transform child in items)
+            {
+                PickableBlock pb = child.GetComponent<PickableBlock>();
+                if (pb != null) onPages.Add(pb);
+            }
+        }
+
+        List<string> leaks = new List<string>();
+        foreach (PickableBlock pb in onPages)
+        {
+            if (pb == null || !ours.Contains(pb.name)) continue;
+            if (pb.Visible || !pb.gameObject.activeInHierarchy) continue;
+
+            foreach (Renderer r in pb.GetComponentsInChildren<Renderer>(true))
+            {
+                // A renderer under an inactive object draws nothing whatever
+                // its own flag says.
+                if (!r.enabled || !r.gameObject.activeInHierarchy) continue;
+                SpriteRenderer sr = r as SpriteRenderer;
+                if (sr != null && (sr.sprite == null || sr.color.a <= 0.01f)) continue;
+                leaks.Add(Q(pb.name + "/" + r.name));
+            }
+            foreach (Canvas cv in pb.GetComponentsInChildren<Canvas>(true))
+            {
+                if (cv.enabled && cv.gameObject.activeInHierarchy)
+                    leaks.Add(Q(pb.name + "/" + cv.name + " (canvas)"));
+            }
+        }
+        leaks.Sort(StringComparer.Ordinal);
+        return Arr(leaks);
+    }
+
+    // Whether the captions on the mod page are rasterised at the size they
+    // would be rasterised at right now.
+    //
+    // A UI Text with resizeTextForBestFit bakes its glyphs at a size it works
+    // out when its mesh rebuilds — and Graphic.canvas is null while the canvas
+    // above it is disabled, so a rebuild that happens then has nothing to
+    // measure against and picks a tiny size. MultiStart's caption went from 69
+    // to 6 that way and stayed there: permanently blurry, and re-blurred on
+    // every page turn by the mod switching the canvas off to hide it.
+    //
+    // "baked" is what the text is currently drawn from; "rebuilt" is what an
+    // honest rebuild produces. They differ exactly when a rebuild happened
+    // under conditions that lied about the size.
+    public static string CaptionRasterJson()
+    {
+        InventoryBook book = Book();
+        int idx = BookModPageIndex();
+        if (idx < 0) return "[]";
+
+        Transform items = book.InventoryPages[idx].transform.Find("Items");
+        if (items == null) return "[]";
+
+        List<string> rows = new List<string>();
+        foreach (Transform child in items)
+        {
+            foreach (UnityEngine.UI.Text text in child.GetComponentsInChildren<UnityEngine.UI.Text>(true))
+            {
+                if (!text.resizeTextForBestFit || string.IsNullOrEmpty(text.text)) continue;
+
+                Canvas canvas = text.GetComponentInParent<Canvas>();
+                int baked = text.cachedTextGenerator.fontSizeUsedForBestFit;
+
+                text.SetAllDirty();
+                Canvas.ForceUpdateCanvases();
+                int rebuilt = text.cachedTextGenerator.fontSizeUsedForBestFit;
+
+                rows.Add("{\"text\":" + Q(text.text)
+                    + ",\"canvasOn\":" + (canvas != null && canvas.enabled ? "true" : "false")
+                    + ",\"baked\":" + baked
+                    + ",\"rebuilt\":" + rebuilt + "}");
+            }
+        }
+        rows.Sort(StringComparer.Ordinal);
+        return Arr(rows);
+    }
+
+    // Just the baked size, without forcing anything — CaptionRasterJson's
+    // rebuild is itself a repair, so it cannot be used to watch WHEN the bad
+    // bake happens.
+    public static string CaptionBaked()
+    {
+        InventoryBook book = Book();
+        int idx = BookModPageIndex();
+        if (idx < 0) return "no-mod-page";
+
+        Transform items = book.InventoryPages[idx].transform.Find("Items");
+        if (items == null) return "no-items";
+
+        List<string> rows = new List<string>();
+        foreach (Transform child in items)
+        {
+            foreach (UnityEngine.UI.Text text in child.GetComponentsInChildren<UnityEngine.UI.Text>(true))
+            {
+                if (!text.resizeTextForBestFit || string.IsNullOrEmpty(text.text)) continue;
+                Canvas live = text.canvas;                       // null unless a live canvas is above it
+                Canvas any = text.GetComponentInParent<Canvas>();
+                rows.Add(text.text + "=" + text.cachedTextGenerator.fontSizeUsedForBestFit
+                    + " liveCanvas=" + (live != null)
+                    + " canvasEnabled=" + (any != null && any.enabled)
+                    + " active=" + text.gameObject.activeInHierarchy
+                    + " pageActive=" + book.InventoryPages[idx].gameObject.activeInHierarchy);
+            }
+        }
+        return string.Join(" | ", rows.ToArray());
+    }
+
+    // Turn one page back, the way the arrow does.
+    public static void PrevPage()
+    {
+        Book().NextPage(-1, false, false);
+    }
+
+    // The pickable that is actually ON a book page, by name.
+    //
+    // Resources.FindObjectsOfTypeAll finds two of every custom pickable: the
+    // one in the book, and the registry's prefab instance — which lives in the
+    // scene (so scene.IsValid() does not filter it), is permanently hidden, and
+    // draws nothing. Taking the first match got the prefab about as often as
+    // not, and a probe that reads a permanently hidden object reports "nothing
+    // is drawing" no matter what the book is doing.
+    static PickableBlock OnPage(string name)
+    {
+        foreach (InventoryPage page in UnityEngine.Object.FindObjectsOfType<InventoryPage>())
+        {
+            Transform items = page.transform.Find("Items");
+            if (items == null) continue;
+            foreach (Transform child in items)
+            {
+                if (child.name != name) continue;
+                PickableBlock pb = child.GetComponent<PickableBlock>();
+                if (pb != null) return pb;
+            }
+        }
+        return null;
+    }
+
+    // What MultiStart is drawing right now, renderer by renderer: enabled,
+    // sorting layer and order, against the current page's paper. Debug detail
+    // for the page-turn bleed — a renderer left in front of the paper of the
+    // page being turned to is the bleed.
+    public static string MultiStartDrawStateJson()
+    {
+        InventoryBook book = Book();
+        InventoryPage current = book.InventoryPages[book.currentPage];
+
+        PickableBlock ms = OnPage("MultiStart_Pick");
+        if (ms == null) return "{\"multistart\":null}";
+
+        List<string> rows = new List<string>();
+        foreach (Renderer r in ms.GetComponentsInChildren<Renderer>(true))
+        {
+            rows.Add("{\"n\":" + Q(r.name)
+                + ",\"on\":" + (r.enabled && r.gameObject.activeInHierarchy ? "true" : "false")
+                + ",\"layer\":" + Q(r.sortingLayerName)
+                + ",\"order\":" + r.sortingOrder + "}");
+        }
+        foreach (Canvas c in ms.GetComponentsInChildren<Canvas>(true))
+        {
+            rows.Add("{\"n\":" + Q(c.name + " (canvas)")
+                + ",\"on\":" + (c.enabled && c.gameObject.activeInHierarchy ? "true" : "false")
+                + ",\"layer\":" + Q(c.sortingLayerName)
+                + ",\"order\":" + c.sortingOrder + "}");
+        }
+        rows.Sort(StringComparer.Ordinal);
+
+        return "{\"page\":" + book.currentPage
+            + ",\"visible\":" + (ms.Visible ? "true" : "false")
+            + ",\"currentPaperOrder\":" + current.pagePaper.sortingOrder
+            + ",\"parts\":" + Arr(rows) + "}";
     }
 
     // A page a player cannot turn to is not in the book, whatever the array

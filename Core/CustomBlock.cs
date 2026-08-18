@@ -144,6 +144,105 @@ namespace CustomBlocks.Core
         internal static readonly Dictionary<PickableBlock, CustomBlock> OwnerOf =
             new Dictionary<PickableBlock, CustomBlock>();
 
+        // Artwork the game does not know a pickable owns, and the sorting order
+        // each piece was authored with.
+        //
+        // Two separate mechanisms miss anything built after the pickable's
+        // Awake, and a block that shows through the page in front of it is
+        // usually falling through both:
+        //
+        // 1. PickableBlock.Enable hides exactly ArtSprites, crossOut, buttonText
+        //    and twitchLogo. Anything else keeps drawing once the page is
+        //    hidden.
+        // 2. SortOrder snapshots GetComponentsInChildren<SpriteRenderer>() when
+        //    it is constructed, and InventoryPage.setPageLayer only re-orders
+        //    what is in that snapshot. A renderer added later keeps the sorting
+        //    order of whichever page state it was born into, so it draws in
+        //    front of the page the reader turns to until something else catches
+        //    up — which is why MultiStart's first bar piece vanished at once and
+        //    the copies and the spawn hatch lingered for about a second.
+        //
+        // ArtSprites is the wrong home for these: it is also what Tint
+        // recolours, so a hatch that is deliberately red would be flattened to
+        // the neutral pick colour on blocks that do not set noneDefaultColors.
+        internal class ExtraArt
+        {
+            public Component Part;      // Renderer or Canvas; both answer to enabled
+            public int AuthoredOrder;   // what setPageLayer's number is added to
+        }
+
+        internal static readonly Dictionary<PickableBlock, List<ExtraArt>> ExtraArtOf =
+            new Dictionary<PickableBlock, List<ExtraArt>>();
+
+        // Take responsibility for everything under `subtree`: hide it when the
+        // game hides `pick`, and re-order it when the page it sits on changes
+        // layer.
+        //
+        // Call it AFTER the artwork is in its final shape. The order recorded
+        // here is the authored one, which setPageLayer's page number is added
+        // to — the same arithmetic SortOrder does for the renderers it knows
+        // about — so registering a renderer whose order already carries a page
+        // number would bake that number in twice.
+        //
+        // Registering a piece the game already handles is harmless: it is
+        // hidden and ordered to the same values twice.
+        protected static void AdoptExtraArt(PickableBlock pick, Transform subtree)
+        {
+            if (pick == null || subtree == null) return;
+
+            List<ExtraArt> extras;
+            if (!ExtraArtOf.TryGetValue(pick, out extras))
+            {
+                extras = new List<ExtraArt>();
+                ExtraArtOf[pick] = extras;
+            }
+
+            foreach (Renderer r in subtree.GetComponentsInChildren<Renderer>(true))
+            {
+                if (Adopted(extras, r)) continue;
+                extras.Add(new ExtraArt { Part = r, AuthoredOrder = r.sortingOrder });
+            }
+            foreach (Canvas c in subtree.GetComponentsInChildren<Canvas>(true))
+            {
+                if (Adopted(extras, c)) continue;
+                extras.Add(new ExtraArt { Part = c, AuthoredOrder = c.sortingOrder });
+            }
+
+            // Captions need one more thing: a rebuild at a moment when they can
+            // be measured. A Text with resizeTextForBestFit bakes its glyphs at
+            // a size it works out when its mesh rebuilds, and keeps them — but
+            // ours are captioned during CreatePickableBlock, on a pickable that
+            // is not on a page yet, so that first bake sees no live canvas and
+            // no final rect and settles on 6 where the real answer is 69. The
+            // difference is the whole of "the caption looks blurry".
+            foreach (UnityEngine.UI.Text text in subtree.GetComponentsInChildren<UnityEngine.UI.Text>(true))
+            {
+                if (!text.resizeTextForBestFit) continue;
+
+                List<UnityEngine.UI.Text> captions;
+                if (!CaptionsOf.TryGetValue(pick, out captions))
+                {
+                    captions = new List<UnityEngine.UI.Text>();
+                    CaptionsOf[pick] = captions;
+                }
+                if (!captions.Contains(text)) captions.Add(text);
+            }
+        }
+
+        // Adopted captions, re-measured whenever the game puts the block on
+        // display. See AdoptExtraArt.
+        internal static readonly Dictionary<PickableBlock, List<UnityEngine.UI.Text>> CaptionsOf =
+            new Dictionary<PickableBlock, List<UnityEngine.UI.Text>>();
+
+        static bool Adopted(List<ExtraArt> extras, Component part)
+        {
+            foreach (ExtraArt extra in extras)
+            {
+                if (extra.Part == part) return true;
+            }
+            return false;
+        }
+
         // Smallest clickable box, in block units. Artwork alone would make
         // PigDirt a 0.41-unit target; vanilla picks are 1x1 or larger.
         public virtual float MinPickSize { get { return 0.75f; } }

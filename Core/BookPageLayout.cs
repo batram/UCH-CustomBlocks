@@ -34,13 +34,13 @@ namespace CustomBlocks.Core
             new[] { "ChickenRoll_Pick", "Acid_Pick" },                            // hurt
         };
 
-        // Clear of the ring binding on the left and of the page title on top.
-        // The title sits at y 1004.0-1004.5 against a paper top of 1006.9.
         // A re-measure has to come in below this fraction of the smallest area
         // seen so far to count as a shrink. The rigs this exists for lose most
         // of their area when they settle, so 2% is nowhere near them.
         const float shrinkThreshold = 0.98f;
 
+        // Clear of the ring binding on the left and of the page title on top.
+        // The title sits at y 1004.0-1004.5 against a paper top of 1006.9.
         const float LeftInset = 0.95f;
         const float RightInset = 0.25f;
         const float TopClear = 3.2f;
@@ -55,7 +55,7 @@ namespace CustomBlocks.Core
                 return;
             }
 
-            if (!Flat())
+            if (!Showing())
             {
                 return;
             }
@@ -88,7 +88,7 @@ namespace CustomBlocks.Core
             if (changed) Arrange();
         }
 
-        // Whether the page is lying flat and facing the reader.
+        // Whether the page is lying flat, facing the reader, and showing its blocks.
         //
         // A page turn is an ANIMATION, and it spins the page root about the
         // book's spine: an InventoryPage the reader has turned PAST sits at
@@ -103,7 +103,7 @@ namespace CustomBlocks.Core
         // front leaves it at 0 the whole time and everything looks right. Only
         // turning PAST it and coming back rotates it, and the re-measure that
         // the flip triggers then ran against an edge-on page.
-        bool Flat()
+        bool Showing()
         {
             // The page's own rotation, not its world one: the book as a whole is
             // free to sit at whatever angle the scene puts it at.
@@ -120,7 +120,25 @@ namespace CustomBlocks.Core
             }
 
             Animator animator = GetComponent<Animator>();
-            return animator == null || !animator.IsInTransition(0);
+            if (animator != null && animator.IsInTransition(0))
+            {
+                return false;
+            }
+
+            // And the blocks have to be on display. A hidden pickable has its
+            // renderers switched off, and this measures what is DRAWING — so a
+            // block measured while hidden records the size of whatever part of
+            // it the game does not hide, which is smaller, and `smallest` only
+            // ever shrinks. MultiStart lost its spawn hatch that way the moment
+            // the hatch started being hidden properly, and the page reflowed
+            // around a block half its real size.
+            foreach (Transform child in Items)
+            {
+                PickableBlock pick = child.GetComponent<PickableBlock>();
+                if (pick != null && pick.Visible) return true;
+            }
+
+            return false;
         }
 
         void Arrange()
